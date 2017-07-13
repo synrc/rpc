@@ -4,11 +4,16 @@ import Foundation
 //Model(value:Tuple(name:"",body: [Model(value:Atom()),Model(value:binary())]))  == {atom()|binary()}
 
 func createParser() -> Chain {
-    let proto = Chain(types: [Model(value:Tuple(name: "io",     body: [Model(value:Chain(types: [Model(value: Tuple(name:"ok", body: [Model(value:Atom())])),
-                                                                                         Model(value: Tuple(name:"error", body: [Model(value:Atom())]))])),
-                                                                   Model(value:Chain(types: [Model(value:Atom()),
-                                                                                         Model(value:Binary()),
-                                                                                         Model(value:Number())]))])),
+    let proto = Chain(types: [Model(value:Tuple(name: "io",
+                                                body: [Model(value:Chain(
+                                                             types: [Model(value: Tuple(name:"ok",
+                                                                                        body: [Model(value:Atom())])),
+                                                                     Model(value: Tuple(name:"error",
+                                                                                        body: [Model(value:Atom())]))])),
+                                                       Model(value:Tuple(name:"",
+                                                             body:[Model(value:Atom()),
+                                                                   Model(value:Chain(types: [Model(value:Binary()),
+                                                                                             Model(value:Number())]))]))])),
                               Model(value:Tuple(name: "Roster", body: [Model(value:Atom())])),
                               Model(value:Tuple(name: "Auth",   body: [Model(value:Atom())])) ])
     print("Parser Ready")
