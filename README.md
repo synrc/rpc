@@ -52,3 +52,7 @@ Chain(types: [Model(value:Tuple(name: "io",
               Model(value:Tuple(name: "Auth",   body: [Model(value:Atom())])) ])
 ```
 
+Credits
+-------
+
+* Anton Makarov
