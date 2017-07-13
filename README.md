@@ -38,7 +38,7 @@ class Io {
 Specification
 -------------
 
-```
+```swift
 Chain(types: [Model(value:Tuple(name: "io",
                                 body: [Model(value:Chain(types: [Model(value: Tuple(name:"ok",
                                                                                     body: [Model(value:Atom())])),
