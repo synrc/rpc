@@ -1,3 +1,11 @@
+//
+//  AppDelegate.swift
+//  Nynja
+//
+//  Created by Anton Makarov on 15.05.17.
+//  Copyright © 2017 TecSynt Solutions. All rights reserved.
+//
+
 import Foundation
 
 enum BertError: Error {

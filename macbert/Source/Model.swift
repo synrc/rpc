@@ -1,10 +1,17 @@
+//
+//  Model.swift
+//  NynjaParser
+//
+//  Created by Anton Makarov on 12.07.2017.
+//  Copyright © 2017 TecSynt Solutions. All rights reserved.
+//
 
 class Err {
-    var code: AnyObject?
+    var code: String?
 }
 
 class Ok {
-    var code: AnyObject?
+    var code: String?
 }
 
 class Io {
@@ -16,7 +23,7 @@ class Auth {
     var token: String?
     var dev_key: String?
     var user_id: String?
-    var phone: String?
+    var phone: Bool?
     var client_id: String?
     var type: String?
     var sms_code: String?
@@ -31,8 +38,9 @@ class Roster {
     var size: Int?
     var userlist: [Contact]?
     var roomlist: [Room]?
-    var subscribe: String?
+    var subscribe: Bool?
     var phone: String?
+    var avatar: String?
     var status: String?
 }
 
@@ -88,7 +96,7 @@ class Message {
     var sync: String = ""
     var created: String = ""
     var access: String = ""
-    var starred: String = ""
+    var started: String = ""
     var payload: String?
     var mime: String?
     var seen_by: String?

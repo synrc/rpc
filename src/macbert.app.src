@@ -1,0 +1,7 @@
+{application, macbert,
+   [{description, "BERT for SWIFT"},
+    {vsn, "1"},
+    {registered, []},
+    {applications, [kernel,stdlib]},
+    {mod, { macbert, []}},
+    {env, []} ]}.
