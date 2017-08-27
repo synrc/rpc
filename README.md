@@ -50,11 +50,7 @@ Chain(types: [
                Model(value:Atom()),
                Model(value:Chain(types: [
                     Model(value:Binary()),
-                    Model(value:Number())]))]))])),
-    Model(value:Tuple(name: "Roster", body: [
-         Model(value:Atom())])),
-    Model(value:Tuple(name: "Auth", body: [
-         Model(value:Atom())])) ])
+                    Model(value:Number())]))]))])) ])
 ```
 
 Run
