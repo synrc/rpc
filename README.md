@@ -57,6 +57,13 @@ Chain(types: [
          Model(value:Atom())])) ])
 ```
 
+Run
+---
+
+```
+$ rebar compile
+```
+
 Credits
 -------
 
