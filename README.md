@@ -61,3 +61,6 @@ Credits
 -------
 
 * Anton Makarov
+* Maxim Sokhatsky
+
+OM A HUM
