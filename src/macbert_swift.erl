@@ -42,6 +42,7 @@ form({attribute,_,record,{List,T}})  ->
                                 orelse List == io
                                 orelse List == p2p
                                 orelse List == error
+                                orelse List == push
                                 orelse List == ok2
                                 orelse List == error2
                                 orelse List == ok of true
