@@ -1,12 +1,13 @@
 -module(macbert_swift).
 -export([parse_transform/2]).
 -compile(export_all).
--define(SRC, "priv/macbert/").
+-include("io.hrl").
 
 parse_transform(Forms, _Options) -> switch(directives(Forms)), Forms.
 directives(Forms) -> lists:flatten([ form(F) || F <- Forms ]).
 
 switch(List) ->
+%    io:format("Decoder: ~p~n",[ file:get_cwd()]),
     file:write_file(?SRC++"Source/Decoder.swift",
     iolist_to_binary(lists:concat([
        "func parseObject(name: String, body:[Model], tuple: BertTuple) -> AnyObject?\n"
@@ -26,6 +27,7 @@ act(List,Name,Args,Field,I,Fun) ->
     ?MODULE:Fun(Name,Args,{Field,Args}),"\n"]).
 
 case_rec({Atom,T}) ->
+%    io:format("Rec: ~p~n",[{Atom,T}]),
     List = atom_to_list(Atom),
     Lower = string:to_lower(List),
     Var = "a" ++ List,
