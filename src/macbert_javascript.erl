@@ -18,7 +18,7 @@ prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(s
               "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
               "function type(data)    {\n"
               "    var res = undefined;\n"
-              "    switch (typeof data) {\n" % TODO: This is not needed, we can handle it in Erlang
+              "    switch (typeof data) {\n"
               "        case 'string': case 'number': res = data; break;\n"
               "        case 'object': res = utf8_dec(data); break;\n"
               "        case 'undefined': res = ''; break;\n"
@@ -26,14 +26,20 @@ prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(s
               "    return res; };\n"
               "function scalar(data)    {\n"
               "    var res = undefined;\n"
-              "    switch (typeof data) {\n" % TODO: This is not needed, we can handle it in Erlang
+              "    switch (typeof data) {\n"
               "        case 'string': res = bin(data); break; case 'number': res = number(data); break;\n"
-              "        case 'object': res = encode(data); break;\n"
               "        default: console.log('Strange data: ' + data); }\n"
               "    return res; };\n"
               "function nil() { return {t: 106, v: undefined}; };\n\n".
 decode(F) -> lists:concat(["function decode(x) {\n if (x.t == 104) { switch (x.v[0].v) {\n\t",case_fields(F,"dec"),";\n\tdefault: return x.v;\n    } } else return x.v; \n}\n\n"]).
-encode(F) -> lists:concat(["function encode(x) {\n switch (x.tupleName) {\n\t",case_fields(F,"enc"),";\n\tdefault: return scalar(x);\n    }\n}\n\n"]).
+encode(F) -> lists:concat([
+    "function encode(x) {\n"
+    "    if (Array.isArray(x)) {\n"
+    "        var r = []; x.forEach(function(a) { r.push(encode(a)) }); return {t:108,v:r};\n"
+    "    } else if (typeof x == 'object') {\n"
+    "        switch (x.tupleName) {\n"
+    "\t",case_fields(F,"enc"),";\n\tdefault: return scalar(x);\n"
+    "    }\n} else return scalar(x); \n}"]).
 case_fields(Forms,Prefix) -> string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
 
 decoder(List,T) ->
