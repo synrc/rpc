@@ -1,5 +1,5 @@
 {application, macbert,
-   [{description, "BERT for SWIFT"},
+   [{description, "BERT for Swift/Java/JS"},
     {vsn, "1"},
     {registered, []},
     {applications, [kernel,stdlib]},
