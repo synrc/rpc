@@ -4,9 +4,11 @@
 -include("io.hrl").
 
 parse_transform(Forms, _Options) -> file:write_file(?SRC++"/JSEnc/protocol.js",directives(Forms)), Forms.
-directives(Forms) -> iolist_to_binary([prelude(),xpack(),xunpack(),[ form(F) || F <- Forms ]]).
+directives(Forms) -> iolist_to_binary([prelude(),xpack(),xunpack(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
 form({attribute,_,record,{List,T}}) -> [encoder(List,T),decoder(List,T)];
 form(Form) ->  [].
+case_field({attribute,_,record,{List,T}},Prefix) -> lists:concat(["case '",List,"': ",Prefix,List,"(x)"]);
+case_field(Form,_) ->  [].
 xpack()    -> "function pack(x)       { return x; }\n".
 xunpack()  -> "function unpack(x)     { return x; }\n".
 prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(str).buffer; };\n"
@@ -16,6 +18,9 @@ prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(s
               "function enc_108(Data) { return {t: 108, v: Data}; };\n"
               "function enc_109(Data) { return {t: 109, v: str2ab(Data)}; };\n"
               "function enc_110(Data) { return {t: 110, v: Number(Data)}; };\n\n".
+decode(F) -> lists:concat(["function decode(x) {\n    switch (x.v[0].v) {\n\t",case_fields(F,"dec"),";\n\tdefault: {}\n}\n\n"]).
+encode(F) -> lists:concat(["function encode(x) {\n    switch (x.tupleName) {\n\t",case_fields(F,"enc"),";\n\tdefault: {}\n}\n\n"]).
+case_fields(Forms,Prefix) -> string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
 
 decoder(List,T) ->
    L = nitro:to_list(List),
