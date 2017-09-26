@@ -14,8 +14,7 @@ case_field({attribute,_,record,{List,T}},Prefix) -> lists:concat(["case '",List,
 case_field(Form,_) ->  [].
 xpack()    -> "function pack(x)       { return x; }\n".
 xunpack()  -> "function unpack(x)     { return x; }\n".
-prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(str).buffer; };\n"
-              "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
+prelude()  -> "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
               "function type(data)    {\n"
               "    var res = undefined;\n"
               "    switch (typeof data) {\n"
@@ -31,11 +30,18 @@ prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(s
               "        default: console.log('Strange data: ' + data); }\n"
               "    return res; };\n"
               "function nil() { return {t: 106, v: undefined}; };\n\n".
-decode(F) -> lists:concat(["function decode(x) {\n if (x.t == 104) { switch (x.v[0].v) {\n\t",case_fields(F,"dec"),";\n\tdefault: return x.v;\n    } } else return x.v; \n}\n\n"]).
+decode(F) -> lists:concat(["function decode(x) {\n"
+    "    if (x.t == 108) {\n"
+    "        var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;\n"
+    "    } else if (x.t == 109) {\n"
+    "        return utf8_dec(x.v);\n"
+    "    } else if (x.t == 104) {\n"
+    "        switch (x.v[0].v) {\n\t",case_fields(F,"dec"),";\n\tdefault: return x.v;\n    }\n"
+    "    } else return x.v; \n}\n\n"]).
 encode(F) -> lists:concat([
     "function encode(x) {\n"
     "    if (Array.isArray(x)) {\n"
-    "        var r = []; x.forEach(function(a) { r.push(encode(a)) }); return {t:108,v:r};\n"
+    "        var r = []; x.forEach(function(y) { r.push(encode(y)) }); return {t:108,v:r};\n"
     "    } else if (typeof x == 'object') {\n"
     "        switch (x.tupleName) {\n"
     "\t",case_fields(F,"enc"),";\n\tdefault: return scalar(x);\n"
