@@ -36,15 +36,23 @@ encoder(List,T) ->
      string:join([ dispatch_enc(Type,Name) || {Name,Type} <- Fields ],",\n\t"),
      ";\n    return tuple(tupleName,",string:join(element(1,lists:unzip(Fields)),","),"); }\n\n"]) end.
 
-pack({Name,{union,[{type,_,nil,[]},{type,_,integer,[]}]}}) -> lists:concat(["number(d.",Name,")"]);
-pack({Name,{union,[{type,_,nil,[]},{type,_,atom,[]}]}})    -> lists:concat(["atom(d.",Name,")"]);
-pack({Name,{union,[{type,_,nil,[]},{type,_,binary,[]}]}})  -> lists:concat(["bin(d.",Name,")"]);
-pack({Name,Args}) -> io:format("name:~p~nargs:~p~n",[Name,Args]), io_lib:format("'~w'",[Args]).
+pack({Name,{tuple,_}})    -> lists:concat(["encode(d.",Name,")"]);
+pack({Name,{term,_}})     -> lists:concat(["encode(d.",Name,")"]);
+pack({Name,{integer,[]}}) -> lists:concat(["number(d.",Name,")"]);
+pack({Name,{list,[]}})    -> lists:concat(["list(d.",Name,")"]);
+pack({Name,{atom,[]}})    -> lists:concat(["atom(d.",Name,")"]);
+pack({Name,{binary,[]}})  -> lists:concat(["bin(d.",Name,")"]);
+pack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}}) -> pack({Name,{Type,Args}});
+pack({Name,Args}) -> io:format("name:~p~nargs:~p~n",[Name,Args]), io_lib:format("'TODO:~w'",[Args]).
 
-unpack({Name,{union,[{type,_,nil,[]},{type,_,integer,[]}]}},I) -> lists:concat(["type(d[",I,"].v)"]);
-unpack({Name,{union,[{type,_,nil,[]},{type,_,atom,[]}]}},I)    -> lists:concat(["type(d[",I,"].v)"]);
-unpack({Name,{union,[{type,_,nil,[]},{type,_,binary,[]}]}},I)  -> lists:concat(["type(d[",I,"].v)"]);
-unpack({Name,Args},I) -> io:format("name:~p~nargs:~p~n",[Name,Args]), io_lib:format("'~w'",[Args]).
+unpack({Name,{tuple,_}},I)    -> lists:concat(["decode(d[",I,"].v)"]);
+unpack({Name,{term,_}},I)     -> lists:concat(["decode(d[",I,"].v)"]);
+unpack({Name,{integer,[]}},I) -> lists:concat(["type(d[",I,"].v)"]);
+unpack({Name,{atom,[]}},I)    -> lists:concat(["type(d[",I,"].v)"]);
+unpack({Name,{list,[]}},I)    -> lists:concat(["type(d[",I,"].v)"]);
+unpack({Name,{binary,[]}},I)  -> lists:concat(["type(d[",I,"].v)"]);
+unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
+unpack({Name,Args},I) -> io:format("name:~p~nargs:~p~n",[Name,Args]), io_lib:format("'TODO:~w'",[Args]).
 
 dispatch_dec({union,[{type,_,nil,[]},{type,_,list,Args}]},Name,I) -> dispatch_dec({list,Args},Name,I);
 dispatch_dec({list,[{type,_,record,[{atom,_,Class}]}]},Name,I) -> dec_list(Name,lists:concat([Class]),integer_to_list(I));
