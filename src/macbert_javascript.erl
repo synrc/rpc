@@ -12,6 +12,14 @@ case_field(Form,_) ->  [].
 xpack()    -> "function pack(x)       { return x; }\n".
 xunpack()  -> "function unpack(x)     { return x; }\n".
 prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(str).buffer; };\n"
+              "function type(data)    {\n"
+              "    var res = '';\n"
+              "    switch (typeof data) {\n" % TODO: This is not needed, we can handle it in Erlang
+              "        case 'string': case 'number': res = data; break;\n"
+              "        case 'object': res = utf8_dec(data); break;\n"
+              "        case 'undefined': res = ''; break;\n"
+              "        default: console.log('Strange data: ' + data); }\n"
+              "    return res; };\n"
               "function enc_97(Data)  { return {t: 97,  v: Number(Data)}; };\n"
               "function enc_100(Data) { return {t: 100, v: Data}; };\n"
               "function enc_106()     { return {t: 106, v: undefined}; };\n"
