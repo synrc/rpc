@@ -43,7 +43,7 @@ encode(F) -> lists:concat([
     "    if (Array.isArray(x)) {\n"
     "        var r = []; x.forEach(function(y) { r.push(encode(y)) }); return {t:108,v:r};\n"
     "    } else if (typeof x == 'object') {\n"
-    "        switch (x.tupleName) {\n"
+    "        switch (x.tup) {\n"
     "\t",case_fields(F,"enc"),";\n\tdefault: return scalar(x);\n"
     "    }\n} else return scalar(x); \n}"]).
 case_fields(Forms,Prefix) -> string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
@@ -54,7 +54,7 @@ decoder(List,T) ->
           || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ],
    case Fields of [] -> []; _ ->
    iolist_to_binary(["function dec",L,"(d) {\n    var r={}; ",
-     "r.tupleName = '",L,"';\n    ", string:join([ dispatch_dec(Type,Name,I) ||
+     "r.tup = '",L,"';\n    ", string:join([ dispatch_dec(Type,Name,I) ||
      {{Name,Type},I} <- lists:zip(Fields,lists:seq(1,length(Fields))) ],";\n    "),
      ";\n    return clean(r); }\n\n"]) end.
 
@@ -63,9 +63,9 @@ encoder(List,T) ->
    Fields =  [{ lists:concat([Field]), {Name,Args}}
           || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ],
    case Fields of [] -> []; _ ->
-   iolist_to_binary(["function enc",L,"(d) {\n    var tupleName = atom('",L,"');\n    ",
+   iolist_to_binary(["function enc",L,"(d) {\n    var tup = atom('",L,"');\n    ",
      string:join([ dispatch_enc(Type,Name) || {Name,Type} <- Fields ],";\n    "),
-     ";\n    return tuple(tupleName,",string:join(element(1,lists:unzip(Fields)),","),"); }\n\n"]) end.
+     ";\n    return tuple(tup,",string:join(element(1,lists:unzip(Fields)),","),"); }\n\n"]) end.
 
 pack({Name,{tuple,_}})    -> lists:concat(["encode(d.",Name,")"]);
 pack({Name,{term,_}})     -> lists:concat(["encode(d.",Name,")"]);
