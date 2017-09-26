@@ -31,12 +31,7 @@ prelude()  -> "function str2ab(str)   { return new TextEncoder('utf-8').encode(s
               "        case 'object': res = encode(data); break;\n"
               "        default: console.log('Strange data: ' + data); }\n"
               "    return res; };\n"
-              "function enc_97(Data)  { return {t: 97,  v: Number(Data)}; };\n"
-              "function enc_100(Data) { return {t: 100, v: Data}; };\n"
-              "function enc_106()     { return {t: 106, v: undefined}; };\n"
-              "function enc_108(Data) { return {t: 108, v: Data}; };\n"
-              "function enc_109(Data) { return {t: 109, v: str2ab(Data)}; };\n"
-              "function enc_110(Data) { return {t: 110, v: Number(Data)}; };\n\n".
+              "function nil() { return {t: 106, v: undefined}; };\n\n".
 decode(F) -> lists:concat(["function decode(x) {\n if (x.t == 104) { switch (x.v[0].v) {\n\t",case_fields(F,"dec"),";\n\tdefault: return x.v;\n    } } else return x.v; \n}\n\n"]).
 encode(F) -> lists:concat(["function encode(x) {\n switch (x.tupleName) {\n\t",case_fields(F,"enc"),";\n\tdefault: return scalar(x);\n    }\n}\n\n"]).
 case_fields(Forms,Prefix) -> string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
@@ -92,13 +87,13 @@ dispatch_dec(Type,Name,I) ->
 dispatch_enc({union,[{type,_,nil,[]},{type,_,list,Args}]},Name) -> dispatch_enc({list,Args},Name);
 dispatch_enc({list,_},Name) -> enc_list(Name);
 dispatch_enc(Type,Name) ->
-    lists:concat(["var ", Name," = '",Name,"' in d && d.",Name," ? ",pack({Name,Type})," : enc_106()"]).
+    lists:concat(["var ", Name," = '",Name,"' in d && d.",Name," ? ",pack({Name,Type})," : nil()"]).
 
 enc_list(Name) ->
     lists:flatten([
     "var ",Name," = []; if ('",Name,"' in d && d.",Name,") {"
-    " d.",Name,".forEach(function(x){",Name,".push(encode(x))}); ", Name,"=enc_108(",Name,"); } else"
-    " { ",Name," = enc_106() }"]).
+    " d.",Name,".forEach(function(x){",Name,".push(encode(x))}); ", Name,"={t:108,v:",Name,"}; } else"
+    " { ",Name," = nil() }"]).
 
 dec_list(Name,I) ->
     lists:flatten(["r.",Name," = []; (d && d.v[",I,"] && d.v[",I,"].v) ?",
