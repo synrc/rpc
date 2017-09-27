@@ -1,6 +1,6 @@
 {application, bert,
-   [{description, "Type Driven BERT ENC/DEC Generator for Swift/Java/JS"},
-    {vsn, "1"},
+   [{description, "Type Driven BERT ENC/DEC Generator"},
+    {vsn, "0.9"},
     {registered, []},
     {applications, [kernel,stdlib]},
     {mod, { bert, []}},
