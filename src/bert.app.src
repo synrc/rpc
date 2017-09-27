@@ -3,5 +3,5 @@
     {vsn, "1"},
     {registered, []},
     {applications, [kernel,stdlib]},
-    {mod, { macbert, []}},
+    {mod, { bert, []}},
     {env, []} ]}.
