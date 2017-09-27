@@ -1,4 +1,4 @@
--module(macbert_java).
+-module(bert_java).
 -export([parse_transform/2]).
 -compile(export_all).
 -include("io.hrl").

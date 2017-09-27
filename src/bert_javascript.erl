@@ -1,4 +1,4 @@
--module(macbert_javascript).
+-module(bert_javascript).
 -export([parse_transform/2]).
 -compile(export_all).
 -include("io.hrl").
@@ -7,29 +7,32 @@ parse_transform(Forms, _Options) ->
     File = filename:join([?SRC,"json-bert.js"]),
     io:format("Generated JavaScript: ~p~n",[File]),
     file:write_file(File,directives(Forms)), Forms.
+
 directives(Forms) -> iolist_to_binary([prelude(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
+
 form({attribute,_,record,{List,T}}) -> [encoder(List,T),decoder(List,T)];
 form(Form) ->  [].
-case_field({attribute,_,record,{List,T}},Prefix) -> lists:concat(["case '",List,"': return ",Prefix,List,"(x); break"]);
-case_field(Form,_) ->  [].
-prelude()  -> "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
-              "function check_len(x)  { try { return (eval('len'+utf8_dec(x.v[0].v))() == x.v.length) ? true : false }\n"
-              "                          catch (e) { return false; } }\n\n"
-              "function type(data)    {\n"
-              "    var res = undefined;\n"
-              "    switch (typeof data) {\n"
-              "        case 'string': case 'number': res = data; break;\n"
-              "        case 'object': res = utf8_dec(data); break;\n"
-              "        case 'undefined': res = ''; break;\n"
-              "        default: console.log('Strange data: ' + data); }\n"
-              "    return res; };\n\n"
-              "function scalar(data)    {\n"
-              "    var res = undefined;\n"
-              "    switch (typeof data) {\n"
-              "        case 'string': res = bin(data); break; case 'number': res = number(data); break;\n"
-              "        default: console.log('Strange data: ' + data); }\n"
-              "    return res; };\n"
-              "function nil() { return {t: 106, v: undefined}; };\n\n".
+
+prelude()  ->
+    "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
+    "function check_len(x)  { try { return (eval('len'+utf8_dec(x.v[0].v))() == x.v.length) ? true : false }\n"
+    "                         catch (e) { return false; } }\n\n"
+    "function type(data)    {\n"
+    "    var res = undefined;\n"
+    "    switch (typeof data) {\n"
+    "        case 'string': case 'number': res = data; break;\n"
+    "        case 'object': res = utf8_dec(data); break;\n"
+    "        case 'undefined': res = ''; break;\n"
+    "        default: console.log('Strange data: ' + data); }\n"
+    "    return res; };\n\n"
+    "function scalar(data)    {\n"
+    "    var res = undefined;\n"
+    "    switch (typeof data) {\n"
+    "        case 'string': res = bin(data); break; case 'number': res = number(data); break;\n"
+    "        default: console.log('Strange data: ' + data); }\n"
+    "    return res; };\n"
+    "function nil() { return {t: 106, v: undefined}; };\n\n".
+
 decode(F) -> lists:concat(["function decode(x) {\n"
     "    if (x.t == 108) {\n"
     "        var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;\n"
@@ -38,8 +41,10 @@ decode(F) -> lists:concat(["function decode(x) {\n"
     "    } else if (x.t == 104 && check_len(x)) {\n"
     "        return eval('dec'+x.v[0].v)(x);\n"
     "    } else if (x.t == 104) {\n"
-    "        var r=[]; x.v.forEach(function(a){r.push(decode(a))}); return Object.assign({tup:'$'}, r);\n"
+    "        var r=[]; x.v.forEach(function(a){r.push(decode(a))});\n"
+    "\treturn Object.assign({tup:'$'}, r);\n"
     "    } else return x.v;\n}\n\n"]).
+
 encode(F) -> lists:concat([
     "function encode(x) {\n"
     "    if (Array.isArray(x)) {\n"
@@ -47,10 +52,16 @@ encode(F) -> lists:concat([
     "    } else if (typeof x == 'object') {\n"
     "        switch (x.tup) {\n"
     "\tcase '$': delete x['tup']; var r=[];\n"
-    "    Object.keys(x).map(function(p){return x[p];}).forEach(function(a){r.push(encode(a))}); return {t:104, v:r};\n"
+    "    Object.keys(x).map(function(p){return x[p];}).forEach(function(a){r.push(encode(a))});\n"
+    "\treturn {t:104, v:r};\n"
     "\tdefault: return eval('enc'+x.tup)(x); }\n"
     "    } else return scalar(x);\n}\n\n"]).
-case_fields(Forms,Prefix) -> string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
+
+case_fields(Forms,Prefix) ->
+    string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
+case_field({attribute,_,record,{List,T}},Prefix) ->
+    lists:concat(["case '",List,"': return ",Prefix,List,"(x); break"]);
+case_field(Form,_) ->  [].
 
 decoder(List,T) ->
    L = nitro:to_list(List),
@@ -77,28 +88,20 @@ encoder(List,T) ->
      string:join([ dispatch_enc(Type,Name) || {Name,Type} <- Fields ],";\n    "),
      ";\n    return tuple(tup,",StrNames,"); }\n\n"]) end.
 
-pack({Name,{tuple,_}})    -> lists:concat(["encode(d.",Name,")"]);
-pack({Name,{term,_}})     -> lists:concat(["encode(d.",Name,")"]);
+pack({Name,{X,_}}) when X == tuple orelse X == term -> lists:concat(["encode(d.",Name,")"]);
 pack({Name,{integer,[]}}) -> lists:concat(["number(d.",Name,")"]);
 pack({Name,{list,[]}})    -> lists:concat(["list(d.",Name,")"]);
 pack({Name,{atom,[]}})    -> lists:concat(["atom(d.",Name,")"]);
 pack({Name,{binary,[]}})  -> lists:concat(["bin(d.",Name,")"]);
 pack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}}) -> pack({Name,{Type,Args}});
 pack({Name,{union,[{type,_,nil,[]},{atom,_,_}|_]}}) -> lists:concat(["atom(d.",Name,")"]);
-pack({Name,Args}) ->
-    n2o:info(?MODULE,"pack:~p args:~p~n",[Name,Args]),
-    io_lib:format("encode(d.~s)",[Name]).
+pack({Name,Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
-unpack({Name,{tuple,_}},I)    -> lists:concat(["decode(d.v[",I,"].v)"]);
-unpack({Name,{term,_}},I)     -> lists:concat(["decode(d.v[",I,"].v)"]);
-unpack({Name,{integer,[]}},I) -> lists:concat(["type(d.v[",I,"].v)"]);
-unpack({Name,{atom,[]}},I)    -> lists:concat(["type(d.v[",I,"].v)"]);
-unpack({Name,{list,[]}},I)    -> lists:concat(["type(d.v[",I,"].v)"]);
-unpack({Name,{binary,[]}},I)  -> lists:concat(["type(d.v[",I,"].v)"]);
+unpack({Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"].v)"]);
 unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
-unpack({Name,Args},I) ->
-    n2o:info(?MODULE,"unpack:~p args:~p~n",[Name,Args]),
-    lists:concat(["decode(d.v[",I,"])"]).
+unpack({Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list orelse X == binary ->
+                                 lists:concat(["type(d.v[",I,"].v)"]);
+unpack({Name,Args},I) -> lists:concat(["decode(d.v[",I,"])"]).
 
 dispatch_dec({union,[{type,_,nil,[]},{type,_,list,Args}]},Name,I) -> dispatch_dec({list,Args},Name,I);
 dispatch_dec({list,_},Name,I) -> dec_list(Name,integer_to_list(I));

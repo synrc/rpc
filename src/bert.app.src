@@ -1,5 +1,5 @@
-{application, macbert,
-   [{description, "BERT for Swift/Java/JS"},
+{application, bert,
+   [{description, "Type Driven BERT ENC/DEC Generator for Swift/Java/JS"},
     {vsn, "1"},
     {registered, []},
     {applications, [kernel,stdlib]},

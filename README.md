@@ -1,5 +1,12 @@
-BERT for Mac
-============
+Type Driven BERT Parser Generator
+=================================
+
+Supported Languages
+-------------------
+
+* Java
+* JavaScript
+* Swift
 
 Erlang Model
 ------------
@@ -64,6 +71,7 @@ Credits
 -------
 
 * Anton Makarov
+* Viacheslav Katsuba
 * Maxim Sokhatsky
 
 OM A HUM

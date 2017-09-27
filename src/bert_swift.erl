@@ -1,4 +1,4 @@
--module(macbert_swift).
+-module(bert_swift).
 -export([parse_transform/2]).
 -compile(export_all).
 -include("io.hrl").
