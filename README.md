@@ -147,6 +147,6 @@ Credits
 * Viacheslav Katsuba
 * Maxim Sokhatsky
 
-Let's build true native Erlang zero-cost encoders/decoders for all languages with you!
+Let's build true native Erlang zero-overhead encoders/decoders for all languages with you!
 
 OM A HUM
