@@ -17,14 +17,6 @@ prelude()  ->
     "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
     "function check_len(x)  { try { return (eval('len'+utf8_dec(x.v[0].v))() == x.v.length) ? true : false }\n"
     "                         catch (e) { return false; } }\n\n"
-    "function type(data)    {\n"
-    "    var res = undefined;\n"
-    "    switch (typeof data) {\n"
-    "        case 'string': case 'number': res = data; break;\n"
-    "        case 'object': res = utf8_dec(data); break;\n"
-    "        case 'undefined': res = ''; break;\n"
-    "        default: console.log('Strange data: ' + data); }\n"
-    "    return res; };\n\n"
     "function scalar(data)    {\n"
     "    var res = undefined;\n"
     "    switch (typeof data) {\n"
@@ -99,8 +91,8 @@ pack({Name,Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
 unpack({Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"].v)"]);
 unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
-unpack({Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list orelse X == binary ->
-                                 lists:concat(["type(d.v[",I,"].v)"]);
+unpack({Name,{X,[]}},I) when X == binary -> lists:concat(["utf8_dec(d.v[",I,"].v)"]);
+unpack({Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list -> lists:concat(["d.v[",I,"].v"]);
 unpack({Name,Args},I) -> lists:concat(["decode(d.v[",I,"])"]).
 
 dispatch_dec({union,[{type,_,nil,[]},{type,_,list,Args}]},Name,I) -> dispatch_dec({list,Args},Name,I);
