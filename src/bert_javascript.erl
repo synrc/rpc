@@ -4,7 +4,7 @@
 -include("io.hrl").
 
 parse_transform(Forms, _Options) ->
-    File = filename:join([?SRC,"json-bert.js"]),
+    File = filename:join([?JS,"json-bert.js"]),
     io:format("Generated JavaScript: ~p~n",[File]),
     file:write_file(File,directives(Forms)), Forms.
 

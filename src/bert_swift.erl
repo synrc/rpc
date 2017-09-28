@@ -7,12 +7,11 @@ parse_transform(Forms, _Options) -> switch(directives(Forms)), Forms.
 directives(Forms) -> lists:flatten([ form(F) || F <- Forms ]).
 
 switch(List) ->
-%    io:format("Decoder: ~p~n",[ file:get_cwd()]),
-    file:write_file(?SRC++"Source/Decoder.swift",
+    file:write_file(filename:join(?SWIFT,"Source/Decoder.swift"),
     iolist_to_binary(lists:concat([
        "func parseObject(name: String, body:[Model], tuple: BertTuple) -> AnyObject?\n"
        "{\n    switch name {\n",
-       [case_rec(X) || X <- List],
+       [case_rec(X) || X <- lists:flatten(List)],
        "    default: return nil\n"
        "    }\n}"
     ]))).
@@ -21,16 +20,13 @@ act(List,union,Args,Field,I) -> act(List,union,Args,Field,I,simple);
 act(List,Name,Args,Field,I) -> act(List,Name,Args,Field,I,keyword).
 
 act(List,Name,Args,Field,I,Fun) ->
-%    io:format("Keyword: ~p~n",[{Name,Args}]),
     lists:concat([tab(1),List,".",Field,
     " = body[",I,"].parse(bert: tuple.elements[",I+1,"]) as? ",
     ?MODULE:Fun(Name,Args,{Field,Args}),"\n"]).
 
 case_rec({Atom,T}) ->
-%    io:format("Rec: ~p~n",[{Atom,T}]),
     List = atom_to_list(Atom),
-    Lower = string:to_lower(List),
-    Var = "a" ++ List,
+    Var = "a_" ++ List,
     lists:concat([ "    case \"", List, "\":\n"
     "        if body.count != ", integer_to_list(length(T)), " { return nil }\n",
     io_lib:format("        let ~s = ~s()\n",[Var,List]),
@@ -38,34 +34,28 @@ case_rec({Atom,T}) ->
          {{_,{_,_,{atom,_,Field},Value},{type,_,Type,Args}},I} <- lists:zip(T,lists:seq(1,length(T))) ],
     "        return " ++ Var ++ "\n" ]).
 
-form({attribute,_,record,{List,T}})  ->
-   [X|Rest]=atom_to_list(List),
-   case X >= $A andalso X =< $Z andalso List /= 'Client'
-                                orelse List == io
-                                orelse List == p2p
-                                orelse List == error
-                                orelse List == push
-                                orelse List == ok2
-                                orelse List == error2
-                                orelse List == ok of true
-      -> spec(List,T),
-         class(List,T),
-         {List,T};
-    _ -> [] end;
+form({attribute,_,record,{List,T}}) ->
+    case class(List,T) of
+         [] -> [];
+          _ -> spec(List,T), {List,T} end;
 form(Form) ->  [].
 
 class(List,T) ->
-   file:write_file(?SRC++"/Model/"++atom_to_list(List)++".swift",
-   iolist_to_binary(case lists:concat([ io_lib:format("\n    var ~s",
-                [ infer(Name,Args,atom_to_list(Field))])
-               || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ]) of
-               [] -> [];
-               Fields -> lists:concat(["\nclass ",List," {", Fields, "\n}"]) end)).
+   File = filename:join(?SWIFT,"Model/"++atom_to_list(List)++".swift"),
+   io:format("Generated Swift Model: ~p~n",[File]),
+   case lists:concat([ io_lib:format("\n    var ~s",
+        [ infer(Name,Args,atom_to_list(Field))])
+     || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ]) of
+        [] -> [];
+        Fields -> file:write_file(File,iolist_to_binary(lists:concat(["\nclass ",List," {", Fields, "\n}"]))) end.
 
 spec(List,T) ->
-    file:write_file(?SRC++"/Spec/"++atom_to_list(List)++"_Spec.swift",
+    File = filename:join(?SWIFT,"Spec/"++atom_to_list(List)++"_Spec.swift"),
+    io:format("Generated Swift Spec: ~p~n",[File]),
+    file:write_file(File,
     iolist_to_binary("func get_"++atom_to_list(List) ++ "() -> Model {\n  return " ++ premodel(List,T) ++ "}\n")).
 
+premodel(List,[]) -> [];
 premodel(List,T) ->
     D = 1,
     Model = tab(D) ++ string:join([ model({type,X,Type,Args},D+1) || {_,_,{type,X,Type,Args}} <- T ],",\n"++tab(D)),
@@ -86,6 +76,7 @@ model({type,_,record,[{atom,_,Name}]},D)        -> lists:concat(["get_",Name,"()
 model({type,_,list,Args},D)    -> "Model(value:List(constant:nil))";
 model({type,_,boolean,Args},D) -> "Model(value:Boolean())";
 model({atom,_,Name},D)         -> lists:concat(["Model(value:Atom(constant:\"",Name,"\"))"]);
+model({integer,_,Name},D)      -> lists:concat(["Model(value:Number(constant:\"",Name,"\"))"]);
 model({type,_,term,Args},D)    -> "Model(value:Chain(types:"++
                                   "[Model(value:Tuple())," ++
                                   "Model(value:Atom())," ++

@@ -4,7 +4,7 @@
 -include("io.hrl").
 
 parse_transform(Forms, _Options) ->
-    File = filename:join([?SRC,"java.java"]),
+    File = filename:join([?JAVA,"java.java"]),
     io:format("Generated Java: ~p~n",[File]),
 %    file:write_file(File,directives(Forms)),
     Forms.
