@@ -112,9 +112,9 @@ function check() {
         "string",
         {tup: 'io', code: 'login', data: {tup: '$', 0: 'Auth', 1: 12}},
         {tup: 'io', code: 'login', data: {tup: 'Auth'}},
-        {tup: 'io', code: 'login', data: {tup: '$', 0: 'пизда', 1: 12}},
+        {tup: 'io', code: 'login', data: {tup: '$', 0: 'doe', 1: 12}},
         {tup: 'Roster', userlist: [{tup: 'Contact'}], status: 'get'},
-        {tup: 'p2p', from: 'хуй', to: 'пизда'},
+        {tup: 'p2p', from: 'john', to: 'doe'},
         {tup: 'Profile', accounts: [1], status: 'maxim'}
     ];
     testData.forEach(function (o) {
