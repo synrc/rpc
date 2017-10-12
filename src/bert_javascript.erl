@@ -26,7 +26,9 @@ prelude()  ->
     "function nil() { return {t: 106, v: undefined}; };\n\n".
 
 decode(F) -> lists:concat(["function decode(x) {\n"
-    "    if (x.t == 108) {\n"
+    "    if (x == undefined) {\n"
+    "        return [];\n"
+    "    } else if (x.t == 108) {\n"
     "        var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;\n"
     "    } else if (x.t == 109) {\n"
     "        return utf8_dec(x.v);\n"
