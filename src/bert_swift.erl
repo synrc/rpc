@@ -41,9 +41,9 @@ form({attribute,_,record,{List,T}}) ->
 form(Form) ->  [].
 
 class(List,T) ->
-   io:format("Swift ~p~n",[{List,T}]),
+   %io:format("Swift ~p~n",[{List,T}]),
    File = filename:join(?SWIFT,"Model/"++atom_to_list(List)++".swift"),
-   io:format("Generated Swift Model: ~p~n",[File]),
+   %io:format("Generated Swift Model: ~p~n",[File]),
    case lists:concat([ io_lib:format("\n    var ~s",
         [ infer(Name,Args,atom_to_list(Field))])
      || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ]) of
@@ -52,7 +52,7 @@ class(List,T) ->
 
 spec(List,T) ->
     File = filename:join(?SWIFT,"Spec/"++atom_to_list(List)++"_Spec.swift"),
-    io:format("Generated Swift Spec: ~p~n",[File]),
+    %io:format("Generated Swift Spec: ~p~n",[File]),
     file:write_file(File,
     iolist_to_binary("func get_"++atom_to_list(List) ++ "() -> Model {\n  return " ++ premodel(List,T) ++ "}\n")).
 
@@ -63,7 +63,7 @@ premodel(List,T) ->
     erlang:put(List,Model),
     io_lib:format("Model(value:Tuple(name:\"~s\",body:[\n~s]))",[atom_to_list(List), Model]).
 
-tab(N) -> lists:duplicate(4*N,$ ).
+tab(N) -> bert:tab(N).
 
 model({type,_,nil,Args},D)     -> "Model(value:List(constant:\"\"))";
 model({type,_,binary,Args},D)  -> "Model(value:Binary())";
