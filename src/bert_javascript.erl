@@ -89,6 +89,8 @@ pack({Name,{atom,[]}})    -> lists:concat(["atom(d.",Name,")"]);
 pack({Name,{binary,[]}})  -> lists:concat(["bin(d.",Name,")"]);
 pack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}}) -> pack({Name,{Type,Args}});
 pack({Name,{union,[{type,_,nil,[]},{atom,_,_}|_]}}) -> lists:concat(["atom(d.",Name,")"]);
+pack({Name,{union,[{type, _, _, []}, {atom, _, _} | _]}}) -> lists:concat(["atom(d.", Name, ")"]);
+pack({Name,{union,[{atom, _, _} | _]}}) -> lists:concat(["atom(d.", Name, ")"]);
 pack({Name,Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
 unpack({Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"].v)"]);
