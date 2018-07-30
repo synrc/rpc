@@ -35,12 +35,13 @@ case_rec({Atom,T}) ->
     "        return " ++ Var ++ "\n" ]).
 
 form({attribute,_,record,{List,T}}) ->
-    case class(List,T) of
-         [] -> [];
-          _ -> spec(List,T), {List,T} end;
+    case lists:member(List,application:get_env(bert, disallowed, [])) of
+         true -> [];
+         _ -> case class(List,T) of [] -> []; _ -> spec(List,T), {List,T} end end;
 form(Form) ->  [].
 
 class(List,T) ->
+   io:format("Swift ~p~n",[{List,T}]),
    File = filename:join(?SWIFT,"Model/"++atom_to_list(List)++".swift"),
    io:format("Generated Swift Model: ~p~n",[File]),
    case lists:concat([ io_lib:format("\n    var ~s",
