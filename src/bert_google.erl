@@ -61,4 +61,4 @@ simple(_,Types,{Field,Args,Pos}) ->
   lists:concat([ tab(2) ++ infer(Type,Args,lists:concat(["a",Pos]),integer_to_list(Pos))
                  || {{type,_,Type,Args},Pos}
                  <- lists:zip(Types,lists:seq(1,length(Types))) ]) ++ tab(1) ++ "}\n";
-simple(_,_,_) -> "?".
+simple(_,_,_) -> "google.protobuf.Any".

@@ -28,6 +28,8 @@ prelude()  ->
 decode(F) -> lists:concat(["function decode(x) {\n"
     "    if (x == undefined) {\n"
     "        return [];\n"
+    "    } if (x % 1 === 0) {\n"
+    "        return x;\n"
     "    } else if (x.t == 108) {\n"
     "        var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;\n"
     "    } else if (x.t == 109) {\n"
