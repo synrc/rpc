@@ -107,14 +107,15 @@ dispatch_dec(Type,Name,I) ->
     lists:concat(["r.",Name," = d && d.v[",I,"] ? ",unpack({Name,Type},integer_to_list(I))," : undefined"]).
 
 dispatch_enc({union,[{type,_,nil,[]},{type,_,list,Args}]},Name) -> dispatch_enc({list,Args},Name);
-dispatch_enc({list,_},Name) -> enc_list(Name);
+dispatch_enc({list,[{type,_,union,[{Type,_,_} | _]}]},Name) -> enc_list(Name, atom_to_binary(Type,utf8));
+dispatch_enc({list,_},Name) -> enc_list(Name,"encode");
 dispatch_enc(Type,Name) ->
     lists:concat(["var ", Name," = '",Name,"' in d && d.",Name," ? ",pack({Name,Type})," : nil()"]).
 
-enc_list(Name) ->
+enc_list(Name,Type) ->
     lists:flatten([
     "var ",Name," = []; if ('",Name,"' in d && d.",Name,")\n\t {"
-    " d.",Name,".forEach(function(x){\n\t",Name,".push(encode(x))});\n\t ", Name,"={t:108,v:",Name,"}; } else"
+    " d.",Name,".forEach(function(x){\n\t",Name,".push(",Type,"(x))});\n\t ", Name,"={t:108,v:",Name,"}; } else"
     " { ",Name," = nil() }"]).
 
 dec_list(Name,I) ->
