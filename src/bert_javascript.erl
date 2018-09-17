@@ -4,9 +4,18 @@
 -include("io.hrl").
 
 parse_transform(Forms, _Options) ->
-    File = filename:join([?JS,"json-bert.js"]),
-    io:format("Generated JavaScript: ~p~n",[File]),
-    file:write_file(File,directives(Forms)), Forms.
+    Files = application:get_env(bert, allowed_hrl, []),
+    NForms = case Files of [] -> Forms; _ -> filter(Forms, Files, {false, []}) end,
+    File = filename:join([?JS, "json-bert.js"]),
+    io:format("Generated JavaScript: ~p~n", [File]),
+    file:write_file(File, directives(NForms)), NForms.
+
+filter([], _Files, {_, Acc}) -> Acc;
+filter([HD = {attribute, _, file, {FileName, _}} | Rest], Files, {_, Acc}) ->
+  Name = filename:basename(FileName, ".hrl"),
+  filter(Rest, Files, case lists:member(Name, Files) of true -> {true, Acc ++ [HD]};_ -> {false, Acc} end);
+filter([HD | Rest], Files, {true, Acc}) -> filter(Rest, Files, {true, Acc ++ [HD]});
+filter([_HD | Rest], Files, {false, Acc}) -> filter(Rest, Files, {false, Acc}).
 
 directives(Forms) -> iolist_to_binary([prelude(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
 
@@ -61,8 +70,7 @@ case_field(Form,_) ->  [].
 
 decoder(List,T) ->
    L = nitro:to_list(List),
-   Fields =  [{ lists:concat([Field]), {Name,Args}}
-          || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ],
+   Fields = filter_fields(T),
    case Fields of [] -> []; _ ->
    iolist_to_binary(["function len",L,"() { return ",integer_to_list(1+length(Fields)),"; }\n"
                      "function dec",L,"(d) {\n    var r={}; ",
@@ -72,8 +80,7 @@ decoder(List,T) ->
 
 encoder(List,T) ->
    Class = nitro:to_list(List),
-   Fields =  [{ lists:concat([Field]), {Name,Args}}
-          || {_,{_,_,{atom,_,Field},Value},{type,_,Name,Args}} <- T ],
+   Fields = filter_fields(T),
    Names = element(1,lists:unzip(Fields)),
    StrNames = case length(Fields) < 12 of
                    true  -> string:join(Names,",");
@@ -84,16 +91,29 @@ encoder(List,T) ->
      string:join([ dispatch_enc(Type,Name) || {Name,Type} <- Fields ],";\n    "),
      ";\n    return tuple(tup,",StrNames,"); }\n\n"]) end.
 
+filter_fields(T) ->
+  Fields = lists:flatten(
+    [case Data of
+       {_, {_, _, {atom, _, Field}, _Value}, {type, _, Name, Args}} -> {lists:concat([Field]),{Name,Args}};
+       {_, {_, _, {atom, _, Field}}, {type, _, Name, Args}}         -> {lists:concat([Field]),{Name,Args}};
+       {_, {_, _, {atom, _, Field}, {_, _, _}}, {Name, _, Args}}    -> {lists:concat([Field]),{Name,Args}};
+       {_,_,{atom,_,Field},{Args,_}}                                -> {lists:concat([Field]),{Field,Args}};
+       {_,_,{atom,_,Field},{Args,_,_}}                              -> {lists:concat([Field]),{Field,Args}};
+       {_,_,{atom,_,Field},{Args,_, [_|_]}}                         -> {lists:concat([Field]),{Field,Args}};
+       _                                                            -> []
+    end || Data <- T]), Fields.
+
 pack({Name,{X,_}}) when X == tuple orelse X == term -> lists:concat(["encode(d.",Name,")"]);
 pack({Name,{integer,[]}}) -> lists:concat(["number(d.",Name,")"]);
 pack({Name,{list,[]}})    -> lists:concat(["list(d.",Name,")"]);
 pack({Name,{atom,[]}})    -> lists:concat(["atom(d.",Name,")"]);
+pack({Name,{atom,_}})   -> lists:concat(["atom(d.",Name,")"]);
 pack({Name,{binary,[]}})  -> lists:concat(["bin(d.",Name,")"]);
 pack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}}) -> pack({Name,{Type,Args}});
 pack({Name,{union,[{type,_,nil,[]},{atom,_,_}|_]}}) -> lists:concat(["atom(d.",Name,")"]);
 pack({Name,{union,[{type, _, _, []}, {atom, _, _} | _]}}) -> lists:concat(["atom(d.", Name, ")"]);
 pack({Name,{union,[{atom, _, _} | _]}}) -> lists:concat(["atom(d.", Name, ")"]);
-pack({Name,Args}) -> io_lib:format("encode(d.~s)",[Name]).
+pack({Name,_Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
 unpack({Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"])"]);
 unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
