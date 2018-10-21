@@ -1,6 +1,6 @@
 {application, bert,
-   [{description, "Type Driven BERT ENC/DEC Generator"},
-    {vsn, "0.9"},
+   [{description, "Type Driven ENC/DEC Generator"},
+    {vsn, "1.10"},
     {registered, []},
     {applications, [kernel,stdlib]},
     {mod, { bert, []}},
