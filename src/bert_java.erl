@@ -9,5 +9,5 @@ parse_transform(Forms, _Options) ->
 %    file:write_file(File,directives(Forms)),
     Forms.
 directives(Forms) -> iolist_to_binary([ form(F) || F <- Forms ]).
-form({attribute,_,record,{List,T}}) -> [];
-form(Form) ->  [].
+form({attribute,_,record,{_List,_T}}) -> [];
+form(_Form) ->  [].

@@ -20,7 +20,7 @@ filter([_HD | Rest], Files, {false, Acc}) -> filter(Rest, Files, {false, Acc}).
 directives(Forms) -> iolist_to_binary([prelude(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
 
 form({attribute,_,record,{List,T}}) -> [encoder(List,T),decoder(List,T)];
-form(Form) ->  [].
+form(_Form) ->  [].
 
 prelude()  ->
     "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
@@ -34,7 +34,7 @@ prelude()  ->
     "    return res; };\n"
     "function nil() { return {t: 106, v: undefined}; };\n\n".
 
-decode(F) -> lists:concat(["function decode(x) {\n"
+decode(_F) -> lists:concat(["function decode(x) {\n"
     "    if (x == undefined) {\n"
     "        return [];\n"
     "    } if (x % 1 === 0) {\n"
@@ -50,7 +50,7 @@ decode(F) -> lists:concat(["function decode(x) {\n"
     "\treturn Object.assign({tup:'$'}, r);\n"
     "    } else return x.v;\n}\n\n"]).
 
-encode(F) -> lists:concat([
+encode(_F) -> lists:concat([
     "function encode(x) {\n"
     "    if (Array.isArray(x)) {\n"
     "        var r = []; x.forEach(function(y) { r.push(encode(y)) }); return {t:108,v:r};\n"
@@ -64,9 +64,9 @@ encode(F) -> lists:concat([
 
 case_fields(Forms,Prefix) ->
     string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
-case_field({attribute,_,record,{List,T}},Prefix) ->
+case_field({attribute,_,record,{List,_T}},Prefix) ->
     lists:concat(["case '",List,"': return ",Prefix,List,"(x); break"]);
-case_field(Form,_) ->  [].
+case_field(_Form,_) ->  [].
 
 decoder(List,T) ->
    L = nitro:to_list(List),
@@ -98,8 +98,8 @@ filter_fields(T) ->
        {_, {_, _, {atom, _, Field}}, {type, _, Name, Args}}         -> {lists:concat([Field]),{Name,Args}};
        {_, {_, _, {atom, _, Field}, {_, _, _}}, {Name, _, Args}}    -> {lists:concat([Field]),{Name,Args}};
        {_,_,{atom,_,Field},{Args,_}}                                -> {lists:concat([Field]),{Field,Args}};
-       {_,_,{atom,_,Field},{Args,_,_}}                              -> {lists:concat([Field]),{Field,Args}};
        {_,_,{atom,_,Field},{Args,_, [_|_]}}                         -> {lists:concat([Field]),{Field,Args}};
+       {_,_,{atom,_,Field},{Args,_,_}}                              -> {lists:concat([Field]),{Field,Args}};
        _                                                            -> []
     end || Data <- T]), Fields.
 
@@ -115,11 +115,11 @@ pack({Name,{union,[{type, _, _, []}, {atom, _, _} | _]}}) -> lists:concat(["atom
 pack({Name,{union,[{atom, _, _} | _]}}) -> lists:concat(["atom(d.", Name, ")"]);
 pack({Name,_Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
-unpack({Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"])"]);
+unpack({_Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"])"]);
 unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
-unpack({Name,{X,[]}},I) when X == binary -> lists:concat(["utf8_dec(d.v[",I,"].v)"]);
-unpack({Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list -> lists:concat(["d.v[",I,"].v"]);
-unpack({Name,Args},I) -> lists:concat(["decode(d.v[",I,"])"]).
+unpack({_Name,{X,[]}},I) when X == binary -> lists:concat(["utf8_dec(d.v[",I,"].v)"]);
+unpack({_Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list -> lists:concat(["d.v[",I,"].v"]);
+unpack({_Name,_Args},I) -> lists:concat(["decode(d.v[",I,"])"]).
 
 dispatch_dec({union,[{type,_,nil,[]},{type,_,list,Args}]},Name,I) -> dispatch_dec({list,Args},Name,I);
 dispatch_dec({list,_},Name,I) -> dec_list(Name,integer_to_list(I));
