@@ -1,6 +1,8 @@
 Type Driven BERT Parser Generator
 =================================
 
+[![Build Status](https://travis-ci.org/synrc/bert.svg?branch=master)](https://travis-ci.org/synrc/bert)
+
 Supported Languages
 -------------------
 
