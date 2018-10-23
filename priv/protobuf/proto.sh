@@ -1,3 +1,3 @@
 #!/bin/sh
 
-protoc *.proto --java_out=sample
+protoc *.proto --java_out=java
