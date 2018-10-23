@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+import public "Feature.proto";
+
+package authentication;
+
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "authentication.grpc";
+option java_outer_classname = "Authentication";
+
+enum AuthServices {
+    a = 0;
+}
+enum AuthType {
+    REG = 0;
+    VOICE = 1;
+    RESEND = 2;
+    VERIFY = 3;
+    PUSH = 4;
+    LOGOUT = 5;
+    GET = 6;
+    DELETE = 7;
+    CLEAR = 8;
+}
+
+message Auth {
+    string client_id = 1;
+    string dev_key = 2;
+    string user_id = 3;
+    string phone = 4;
+    string token = 5;
+    AuthType type = 6;
+    string sms_code = 7;
+    int64 attempts = 8;
+    AuthServices services = 9;
+    repeated Feature settings = 10;
+    string push = 11;
+    AuthOs os = 12;
+    int64 created = 13;
+    int64 last_online = 14;
+}
+
+enum AuthOs {
+    PHONE = 0;
+    EMAIL = 1;
+    FACEBOOK = 2;
+    GOOGLEPLUS = 3;
+}
+
+service AuthenticationService {
+    rpc login(Auth) returns (Auth);
+    rpc resend(Auth) returns (Auth);
+    rpc call(Auth) returns (Auth);
+    rpc confirm(Auth) returns (Auth);
+    rpc update_push_token(Auth) returns (Auth);
+    rpc get_sessions(Auth) returns (Auth);
+    rpc delete_session(Auth) returns (Auth);
+    rpc delete_all_session(Auth) returns (Auth);
+    rpc update_token(Auth) returns (Auth);
+}
