@@ -15,15 +15,18 @@ enum AuthServices {
 }
 
 enum AuthType {
-    REG = 0;
-    VOICE = 1;
-    RESEND = 2;
-    VERIFY = 3;
-    PUSH = 4;
-    LOGOUT = 5;
-    GET = 6;
-    DELETE = 7;
-    CLEAR = 8;
+    VOICE = 0;
+    RESEND = 1;
+    VERIFY = 2;
+    PUSH = 3;
+    LOGOUT = 4;
+    GET = 5;
+    DELETE = 6;
+    CLEAR = 7;
+    PHONE = 8;
+    EMAIL = 9;
+    FACEBOOK = 10;
+    GOOGLEPLUS = 11;
 }
 
 message Auth {
@@ -44,10 +47,9 @@ message Auth {
 }
 
 enum AuthOs {
-    PHONE = 0;
-    EMAIL = 1;
-    FACEBOOK = 2;
-    GOOGLEPLUS = 3;
+    IOS  = 0;
+    ANDROID = 1;
+    WEB = 3;
 }
 
 service AuthenticationService {
