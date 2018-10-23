@@ -8,6 +8,7 @@ Supported Languages
 
 * JavaScript
 * Swift
+* Protobuf
 
 Contest Description
 -------------------
