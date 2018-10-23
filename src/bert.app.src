@@ -1,5 +1,5 @@
 {application, bert,
-   [{description, "Type Driven ENC/DEC Generator"},
+   [{description, "BERT: Type Driven Generator"},
     {vsn, "1.10"},
     {registered, []},
     {applications, [kernel,stdlib]},

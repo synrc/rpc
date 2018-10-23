@@ -1,14 +1,14 @@
-Type Driven BERT Parser Generator
-=================================
+BERT: Type Driven Parser Generator
+==================================
 
 [![Build Status](https://travis-ci.org/synrc/bert.svg?branch=master)](https://travis-ci.org/synrc/bert)
 
-Supported Languages
--------------------
+Supported Formatters
+--------------------
 
-* JavaScript
-* Swift
-* Protobuf
+* JavaScript (BERT)
+* Swift (BERT)
+* Google (PROTOBUF)
 
 Intro
 -----
@@ -37,6 +37,10 @@ First, you can choose the language which is not presented in
 this repo and try to implement your own BERT enc/dec generator
 for this language using Swift (Type Spec precise) and
 JavaScript (open relay) generator as examples.
+
+The aim of this contest is to create encoders/decoders for
+each language and make brigdes to other protocol descriptive
+formats like Can'n'Proto or protobuf!
 
 Erlang HRL
 ----------
@@ -128,13 +132,101 @@ function check() {
 }
 ```
 
-Protobuf
+Protobuf Sample
+---------------
+
+Erlang BERT/HRL (source):
+
+```
+-type authType()   :: google_api | facebook_api | mobile | email |
+                      voice | resend | verify | push | logout | get | delete | clear.
+
+-type authStatus() :: invalid_version | mismatch_user_data | number_not_allowed |
+                      session_not_found | attempts_expired | invalid_sms_code |
+                      invalid_jwt_code | permission_denied | invalid_data.
+
+-record('Feature',  { id    = [] :: [] | binary(),
+                      key   = [] :: [] | binary(),
+                      value = [] :: [] | binary(),
+                      group = [] :: [] | binary()}).
+
+-record('Auth',     { client_id   = [] :: [] | binary(),
+                      dev_key     = [] :: [] | binary(),
+                      user_id     = [] :: [] | binary(),
+                      phone       = [] :: [] | binary(),
+                      token       = [] :: [] | binary(),
+                      type        = email :: authStatus(),
+                      sms_code    = [] :: [] | binary(),
+                      attempts    = [] :: [] | integer(),
+                      services    = [] :: list(atom()),
+                      settings    = [] :: list(#'Feature'{}),
+                      push        = [] :: [] | binary(),
+                      os          = [] :: [] | ios | android | web,
+                      created     = [] :: [] | integer(),
+                      last_online = [] :: [] | integer() }).
+```
+
+Proto V3 (target):
+
+```
+enum osEnum {
+    ios = 0;
+    android = 1;
+    web = 2;
+}
+
+enum authStatus {
+    invalid_version = 0;
+    mismatch_user_data = 1;
+    number_not_allowed = 2;
+    session_not_found = 3;
+    attempts_expired = 4;
+    invalid_sms_code = 5;
+    invalid_jwt_code = 6;
+    permission_denied = 7;
+    invalid_data = 8;
+}
+
+message Feature {
+    string id = 1;
+    string key = 2;
+    string value = 3;
+    string group = 4;
+}
+
+message Auth {
+    string client_id = 1;
+    string dev_key = 2;
+    string user_id = 3;
+    string phone = 4;
+    string token = 5;
+    authStatus type = 6;
+    string sms_code = 7;
+    int64 attempts = 8;
+    repeated google.protobuf.Any services = 9;
+    repeated Feature settings = 10;
+    string push = 11;
+    osEnum os = 12;
+    int64 created = 13;
+    int64 last_online = 14;
+}
+```
 
 Run
 ---
 
 ```
-$ rebar compile
+$ mad dep com
+==> dependency: "git://github.com/synrc/nitro" tag: {tag,"3.10"}
+==> "nitro"
+==> "/Users/maxim/depot/synrc/bert"
+Generated Protobuf Model: "priv/protobuf/authType.proto"
+Generated Protobuf Model: "priv/protobuf/authStatus.proto"
+Generated Protobuf Model: "priv/protobuf/Feature.proto"
+Generated Protobuf Model: "priv/protobuf/Auth.proto"
+Generated Protobuf Model: "priv/protobuf/AuthError.proto"
+Compiling /src/bert_sample.erl
+OK
 ```
 
 Credits

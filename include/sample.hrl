@@ -1,7 +1,9 @@
 -ifndef(ROSTER_HRL).
 -define(ROSTER_HRL, true).
 
--type authType()  :: google_api | facebook_api | mobile | email |
+-type presence()  :: online | offline.
+
+-type authType()  :: google_auth | facebook_auth | mobile_auth | email_auth |
                      voice | resend | verify | push | logout | get | delete | clear.
 
 -type authStatus() :: invalid_version | mismatch_user_data | number_not_allowed |
@@ -18,7 +20,7 @@
                          user_id     = [] :: [] | binary(),
                          phone       = [] :: [] | binary(),
                          token       = [] :: [] | binary(),
-                         type        = email :: authStatus(),
+                         type        = email :: authType(),
                          sms_code    = [] :: [] | binary(),
                          attempts    = [] :: [] | integer(),
                          services    = [] :: list(atom()),
@@ -30,5 +32,54 @@
 
 -record('AuthError',   {codes    = [] :: list(authStatus()),
                         data     = [] :: [] | #'Auth'{}}).
+
+-record('Service',      {id        = [] :: [] | binary(),
+                        type       = [] :: [] | email | vox | aws | wallet,
+                        data       = [] :: term(),
+                        login      = [] :: [] | binary(),
+                        password   = [] :: [] | binary(),
+                        expiration = [] :: [] | integer(),
+                        serviceStatus     = [] :: [] | verified | added}).
+
+-record('Contact',      {phone_id = [] :: [] | binary(),
+                         avatar   = [] :: [] | binary(),
+                         names    = [] :: [] | binary(),
+                         surnames = [] :: [] | binary(),
+                         nick     = [] :: [] | binary(),
+                         reader   = [] :: [] | list(integer()),
+                         unread   = 0  :: [] | integer(),
+%                         last_msg = [] :: [] | #'Message'{},
+                         update   = 0  :: [] | integer(),
+                         created  = 0  :: [] | integer(),
+                         settings = [] :: list(#'Feature'{}),
+                         services = [] :: list(#'Service'{}),
+             		presence = offline :: presence(),
+                         status   = [] :: [] | request | authorization | ignore | internal
+                                             | friend | last_msg | ban | banned | deleted }).
+
+-record('Roster',       {id       = [] :: [] | integer(),
+                         names    = [] :: [] | binary(),
+                         surnames = [] :: [] | binary(),
+                         email    = [] :: [] | binary(),
+                         nick     = [] :: [] | binary(),
+                         userlist = [] :: list(#'Contact'{}),
+%                         roomlist = [] :: list(#'Room'{}),
+%                         favorite = [] :: list(#'ExtendedStar'{}),
+%                         tags     = [] :: list(#'Tag'{}),
+                         phone    = [] :: [] | binary(),
+                         avatar   = [] :: [] | binary(),
+                         update   = 0  :: [] | integer(),
+                         rosterStatus   = [] :: [] | get_roster | create_roster | del_roster | remove_roster
+                                                   | nick
+                                             | add_roster | update_roster | list_loster | patch_roster | roster_last_msg }).
+
+-record('Profile',      {phone    = [] :: [] | binary(),
+                         services = [] :: list(#'Service'{}),
+                         rosters  = [] :: list(#'Roster'{}),
+                         settings = [] :: list(#'Feature'{}),
+                         update   = 0  :: integer(),
+                         balance  = 0  :: integer(),
+                         presence = offline :: presence(),
+                         profileStatus   = [] :: [] | remove_profile | get_profile | patch_profile }).
 
 -endif.

@@ -1,3 +1,4 @@
+.rebar
 priv/boiko/java
 priv/protobuf/java
 ebin
