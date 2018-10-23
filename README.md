@@ -9,8 +9,8 @@ Supported Languages
 * JavaScript
 * Swift
 
-Contest Description
--------------------
+Intro
+-----
 
 As you may know, Erlang has its own binary encoding BERT inside
 its virtual machine, called BEAM. For enterprise RPC usually,
@@ -29,24 +29,16 @@ that (it didn't check types and constants, given in Erlang
 HRL files). However, Swift version has the ability to check
 encoded/decoded term to comply the Erlang Type Specification.
 
-The aim of this contest is to create encoders/decoders for
-each language!
-
-Rules
------
+Samples
+-------
 
 First, you can choose the language which is not presented in
 this repo and try to implement your own BERT enc/dec generator
 for this language using Swift (Type Spec precise) and
 JavaScript (open relay) generator as examples.
 
-If you think you can deliver clean first class code and
-you should be paid for this task please inform me about
-your lowest price you'll be satisfied to maxim@synrc.com.
-You will be chosen!
-
-Erlang Model
-------------
+Erlang HRL
+----------
 
 ```erlang
 -record(error, { code=[] :: [] | binary() }).
@@ -83,8 +75,8 @@ class Io {
 }
 ```
 
-Specification
--------------
+Swift Spec
+----------
 
 ```swift
 Chain(types: [
@@ -134,6 +126,8 @@ function check() {
     return res;
 }
 ```
+
+Protobuf
 
 Run
 ---
