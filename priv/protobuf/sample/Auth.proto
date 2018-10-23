@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import public "Feature.proto";
+import "google/protobuf/any.proto";
 
 package authentication;
 
@@ -10,8 +11,9 @@ option java_package = "authentication.grpc";
 option java_outer_classname = "Authentication";
 
 enum AuthServices {
-    a = 0;
+    JWT = 0;
 }
+
 enum AuthType {
     REG = 0;
     VOICE = 1;
@@ -33,7 +35,7 @@ message Auth {
     AuthType type = 6;
     string sms_code = 7;
     int64 attempts = 8;
-    AuthServices services = 9;
+    repeated google.protobuf.Any services = 9;
     repeated Feature settings = 10;
     string push = 11;
     AuthOs os = 12;
@@ -58,4 +60,29 @@ service AuthenticationService {
     rpc delete_session(Auth) returns (Auth);
     rpc delete_all_session(Auth) returns (Auth);
     rpc update_token(Auth) returns (Auth);
+}
+
+enum AuthErrorCode {
+    // client and server have different code versions
+    invalid_version = 0;
+    // Auth session from Client doesn't match Auth session from db
+    mismatch_user_data = 1;
+    // Phone number is not whitelisted
+    number_not_allowed = 2;
+    // ClientId what is provided by Client App is not registered in DB
+    session_not_found = 3;
+    // Client pass invalid sms code more that Attempts time
+    attempts_expired = 4;
+    // Wrong sms code / jwt on session verification
+    invalid_sms_code = 5;
+    invalid_jwt_code = 6;
+    // Client try to manage another user data
+    permission_denied = 7;
+    // Universal error response. Unspecified errors
+    invalid_data = 8;
+}
+
+message AuthError{
+    repeated AuthErrorCode codes = 1;
+    Auth data = 2;
 }
