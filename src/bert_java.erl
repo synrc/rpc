@@ -1,7 +1,7 @@
 -module(bert_java).
+-include("io.hrl").
 -export([parse_transform/2]).
 -compile(export_all).
--include("io.hrl").
 
 parse_transform(Forms, _Options) ->
     File = filename:join([?JAVA,"java.java"]),
