@@ -24,7 +24,9 @@ form({attribute,_,record,{List,T}}) ->
     %io:format("RECORD: ~p~n",[{List,T}]),
     application:set_env(bert,{deps,List},[]),
     case lists:member(List,application:get_env(bert, disallowed, [])) of
-         true -> []; _ -> class(List,T) end;
+         true -> [];
+            _ -> class(List,T)
+    end;
 
 form(_X) ->
     %io:format("UNKNOWN: ~p~n",[_X]),
