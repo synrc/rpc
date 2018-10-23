@@ -8,6 +8,7 @@ Supported Languages
 
 * JavaScript
 * Swift
+* Protobuf
 
 Intro
 -----
@@ -142,6 +143,7 @@ Credits
 * Anton Makarov
 * Viacheslav Katsuba
 * Maxim Sokhatsky
+* Dmytro Boiko
 
 Let's build true native Erlang zero-overhead encoders/decoders for all languages with you!
 
