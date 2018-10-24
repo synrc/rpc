@@ -75,11 +75,11 @@ header(N) ->
     Internals = undup([j(["import \"",       I,".proto\";\n"]) || I <- var({int,N}) ]),
     Publics   = undup([j(["import public \"",I,".proto\";\n"]) || I <- var({deps,N}) , I/=N]),
     lists:concat(
-  [ "syntax = \"proto3\";\n", Package, Internals, Publics,
+  [ "syntax = \"proto3\";\n", Package, Internals,
     "option java_generic_services = true;\n",
     "option java_multiple_files = true;\n",
     "option java_package = \"", N, ".grpc\";\n"
-    "option java_outer_classname = \"", N, "Cls\";\n\n" ]).
+    "option java_outer_classname = \"", N, "Cls\";\n\n", Publics ]).
 
 enums() -> j([ begin {_,F} = Name, Enums = var({enum,Name}),
                      enum(F,"Enum",Enums) end || Name <- var(enums) ]).
