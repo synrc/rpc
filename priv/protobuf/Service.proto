@@ -3,9 +3,9 @@
 
 syntax = "proto3";
 
-import public "serverStatus.proto";
 import public "Feature.proto";
 import public "serverType.proto";
+import public "serverStatus.proto";
 import "google/protobuf/any.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
@@ -18,5 +18,5 @@ message Service {
     serverType type = 3;
     repeated Feature setting = 4;
     int64 expiration = 5;
-    serverStatus status = 6;
+    serverStatus service_status = 6;
 }

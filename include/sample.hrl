@@ -23,7 +23,7 @@
 -record('Tag',          {roster_id = [] :: [] | integer(),
                          name      = [] :: binary(),
                          color     = [] :: binary(),
-                         status    = [] :: tagType()}).
+                         tag_status    = [] :: tagType()}).
 
 -type tagType() :: tag_create | tag_remove | tag_edit.
 
@@ -43,10 +43,10 @@
                          seenby    = [] :: list(binary() | integer()),
                          repliedby = [] :: list(integer()),
                          mentioned = [] :: list(integer()),
-                         status    = [] :: messageStatus()}).
+                         msg_status    = [] :: messageStatus()}).
 
 -type messageType() :: sys | reply | forward | read | edited | cursor.
--type messageStatus() :: async | delete | clear| update | edit.
+-type messageStatus() :: masync | mdelete | mclear| mupdate | medit.
 
 %%================================================AUTH RECORD ==========================================================
 -type authOs() :: ios | android | web.
@@ -81,7 +81,7 @@ invalid_jwt_code | permission_denied | invalid_data.
                         type       = [] :: serverType(),
                         setting    = [] :: list(#'Feature'{}),
                         expiration = [] :: integer(),
-                        status     = [] :: serverStatus()}).
+                        service_status     = [] :: serverStatus()}).
 
 -type serverType() ::  email | wallet | google_type | fb | phone.
 
@@ -104,7 +104,7 @@ invalid_jwt_code | permission_denied | invalid_data.
                          settings  = [] :: list(#'Feature'{}),
                          services  = [] :: list(#'Service'{}),
                          presence  = offline :: presence(),
-                         status    = member :: memberStatus()}).
+                         member_status    = member :: memberStatus()}).
 
 -type memberStatus() :: admin | member | removed | patch | owner.
 
@@ -113,9 +113,9 @@ invalid_jwt_code | permission_denied | invalid_data.
                          name      = [] :: [] | binary(),
                          room_id   = [] :: [] | binary(),
                          created   = 0  :: [] | integer(),
-                         status    = [] :: linkStatus()}).
+                         links_status    = [] :: linkStatus()}).
 
--type linkStatus() :: gen | check | add | delete | update.
+-type linkStatus() :: lgen | lcheck | ladd | ldelete | lupdate.
 
 %%================================================ROOM RECORD ==========================================================
 -record('Room',         {id          = [] :: [] | binary(),
@@ -135,7 +135,7 @@ invalid_jwt_code | permission_denied | invalid_data.
                          last_msg    = [] :: [] | #'Message'{},
                          update      = 0  :: [] | integer(),
                          created     = 0  :: [] | integer(),
-                         status      = [] :: [] | roomStatus()}).
+                         status      = [] :: roomStatus()}).
 
 -type roomType() :: group | channel.
 

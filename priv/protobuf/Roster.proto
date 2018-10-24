@@ -3,8 +3,11 @@
 
 syntax = "proto3";
 
-import public "rosterStatus.proto";
+import public "Room.proto";
+import public "Tag.proto";
 import public "Contact.proto";
+import public "rosterStatus.proto";
+import public "ExtendedStar.proto";
 import "google/protobuf/any.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
@@ -18,8 +21,11 @@ message Roster {
     string email = 4;
     string nick = 5;
     repeated Contact userlist = 6;
-    string phone = 7;
-    string avatar = 8;
-    int64 update = 9;
-    rosterStatus rosterStatus = 10;
+    repeated Room roomlist = 7;
+    repeated ExtendedStar favorite = 8;
+    repeated Tag tags = 9;
+    string phone = 10;
+    string avatar = 11;
+    int64 update = 12;
+    rosterStatus rosterStatus = 13;
 }

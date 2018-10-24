@@ -53,10 +53,11 @@ class(List,T) ->
 
 header(Name) ->
     %io:format("TRACE: ~p~n",[application:get_env(bert,{deps,Name},[])]),
+    Imports = sets:to_list(sets:from_list([ lists:concat(["import public \"", Import,".proto\";\n"])
+      || Import <- application:get_env(bert,{deps,Name},[]), Import /= Name ])),
    lists:concat(
   [ "syntax = \"proto3\";\n\n",
-    [ lists:concat(["import public \"", Import,".proto\";\n"])
-      || Import <- application:get_env(bert,{deps,Name},[]), Import /= Name ],
+    Imports,
     "import \"google/protobuf/any.proto\";\n",
     "option java_generic_services = true;\n",
     "option java_multiple_files = true;\n",
@@ -91,6 +92,7 @@ keyword(_M,record, [{atom,_,Name}], _) ->
     application:set_env(bert, {deps,_M}, [Name] ++ application:get_env(bert,{deps,_M},[])),
     lists:concat([Name]);
 keyword(_M,list,  [{type,_,integer,[]}] , _) -> "repeated int64";
+keyword(_M,list,  Args , _) -> "repeated google.protobuf.Any";
 keyword(_M,tuple,_List,_)   -> "message";
 keyword(_M,term,_Args,_)    -> "bytes";
 keyword(_M,integer,_Args,_) -> "int64";
@@ -111,10 +113,11 @@ infer(Message,union,Args,Field,Pos) ->
     application:set_env(bert,{enum,{Message,Field}},[ X || {_,_,X} <- Atoms ]),
     application:set_env(bert, enums, [{Message,Field}] ++ application:get_env(bert,enums,[])),
     %io:format("INFER: ~p~n",[{Atoms,Rest}]),
-    case {Atoms,Rest} of
-         {[],_} -> simple(Message,Args,{Field,Args,Pos});
-         {_,[{type,_,nil,[]}]} -> Field ++ "Enum "++ Field ++" = " ++ Pos ++ ";\n";
-         {_,[]} -> Field ++ "Enum " ++ Field ++ " = " ++ Pos ++ ";\n";
+    case {Message,Atoms,Rest} of
+         {'Message',[],_} -> io:format("UNION: ~p~n",[{Message,Field}]), simple(Message,Args,{Field,Args,Pos});
+         {_,[],_} -> simple(Message,Args,{Field,Args,Pos});
+         {_,_,[{type,_,nil,[]}]} -> Field ++ "Enum "++ Field ++" = " ++ Pos ++ ";\n";
+         {_,_,[]} -> Field ++ "Enum " ++ Field ++ " = " ++ Pos ++ ";\n";
               _ ->  simple(Message,Args,{Field,Args,Pos})  end;
 
 infer(Message,Type,Args,Field,Pos)  ->
@@ -130,7 +133,8 @@ simple(Message,Types,{Field,Args,Pos}) when length(Types) == 1 ->
     infer(Message,[Types],Args,Field,integer_to_list(Pos));
 simple(Message,Types,{Field,Args,_Pos}) ->
     "oneof " ++ Field ++ " {\n" ++
-    lists:concat([ tab(2) ++ infer(Message,Type,Args,lists:concat(["a",Pos]),integer_to_list(Pos))
-                   || {{type,_,Type,_Args},Pos}
+    lists:concat([ tab(2) ++ infer(Message,Name,Args,lists:concat(["a",Pos]),integer_to_list(Pos+10*length(Types)*list_to_integer(_Pos)))
+                   || {{type,_,Type,[{atom,_,Name}]},Pos}
                    <- lists:zip(Types,lists:seq(1,length(Types))) ]) ++ tab(1) ++ "}\n";
 simple(_Message,_,_) -> "google.protobuf.Any".
+
