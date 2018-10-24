@@ -2,11 +2,51 @@
 -define(ROSTER_HRL, true).
 
 -type presence()  :: online | offline.
+-type container()  :: chain | cur.
+
+-record(p2p,            {from = [] :: [] | binary(),
+                         to   = [] :: [] | binary() }).
+
+-record(muc,            {name = [] :: [] | binary() }).
 
 -record('Feature',      {id    = [] :: [] | binary(),
                          key   = [] :: [] | binary(),
                          value = [] :: [] | binary(),
                          group = [] :: [] | binary()}).
+
+-record('Desc',         {id       = [] :: binary(),
+                         mime     = <<"text">> :: binary(),
+                         payload  = [] :: binary(),
+                         parentid = [] :: binary(),
+                         data     = [] :: list(#'Feature'{})}).
+
+-record('Tag',          {roster_id = [] :: [] | integer(),
+                         name      = [] :: binary(),
+                         color     = [] :: binary(),
+                         status    = [] :: tagType()}).
+
+-type tagType() :: tag_create | tag_remove | tag_edit.
+
+%%================================================MESSAGE RECORD =======================================================
+-record('Message',      {id        = [] :: [] | integer(),
+                         container = chain :: container(),
+                         feed_id   = [] :: #muc{} | #p2p{},
+                         prev      = [] :: [] | integer(),
+                         next      = [] :: [] | integer(),
+                         msg_id    = [] :: [] | binary(),
+                         from      = [] :: [] | binary(),
+                         to        = [] :: [] | binary(),
+                         created   = [] :: [] | integer(),
+                         files     = [] :: list(#'Desc'{}),
+                         type      = [] :: messageType(),
+                         link      = [] :: [] | integer() | #'Message'{},
+                         seenby    = [] :: list(binary() | integer()),
+                         repliedby = [] :: list(integer()),
+                         mentioned = [] :: list(integer()),
+                         status    = [] :: messageStatus()}).
+
+-type messageType() :: sys | reply | forward | read | edited | cursor.
+-type messageStatus() :: async | delete | clear| update | edit.
 
 %%================================================AUTH RECORD ==========================================================
 -type authOs() :: ios | android | web.
@@ -47,15 +87,69 @@ invalid_jwt_code | permission_denied | invalid_data.
 
 -type serverStatus() :: servie_verified | service_not_verified.
 
+%%================================================LINK RECORD ==========================================================
+-record('Member',       {id        = [] :: [] | integer(),
+                         container = chain :: container(),
+                         feed_id   = [] :: #muc{} | #p2p{},
+                         prev      = [] :: [] | integer(),
+                         next      = [] :: [] | integer(),
+                         feeds     = [] :: list(),
+                         phone_id  = [] :: [] | binary(),
+                         avatar    = [] :: [] | binary(),
+                         names     = [] :: [] | binary(),
+                         surnames  = [] :: [] | binary(),
+                         alias     = [] :: [] | binary(),
+                         reader    = 0  :: [] | integer(),
+                         update    = 0  :: [] | integer(),
+                         settings  = [] :: list(#'Feature'{}),
+                         services  = [] :: list(#'Service'{}),
+                         presence  = offline :: presence(),
+                         status    = member :: memberStatus()}).
+
+-type memberStatus() :: admin | member | removed | patch | owner.
+
+%%================================================LINK RECORD ==========================================================
+-record('Link',         {id        = [] :: [] | binary(),
+                         name      = [] :: [] | binary(),
+                         room_id   = [] :: [] | binary(),
+                         created   = 0  :: [] | integer(),
+                         status    = [] :: linkStatus()}).
+
+-type linkStatus() :: gen | check | add | delete | update.
+
+%%================================================ROOM RECORD ==========================================================
+-record('Room',         {id          = [] :: [] | binary(),
+                         name        = [] :: [] | binary(),
+                         links       = [] :: [] | list(#'Link'{}),
+                         description = [] :: [] | binary(),
+                         settings    = [] :: list(#'Feature'{}),
+                         members     = [] :: list(#'Member'{}),
+                         admins      = [] :: list(#'Member'{}),
+                         data        = [] :: list(#'Desc'{}),
+                         type        = [] :: roomType(),
+                         tos         = [] :: [] | binary(),
+                         tos_update  = 0  :: [] | integer(),
+                         unread      = 0  :: [] | integer(),
+                         mentions    = [] :: list(integer()),
+                         readers     = [] :: list(integer()),
+                         last_msg    = [] :: [] | #'Message'{},
+                         update      = 0  :: [] | integer(),
+                         created     = 0  :: [] | integer(),
+                         status      = [] :: [] | roomStatus()}).
+
+-type roomType() :: group | channel.
+
+-type roomStatus() :: room_create | room_leave| room_add | room_remove | room_patch | room_get | room_delete | room_last_msg.
+
 %%================================================CONTACT RECORD =======================================================
 -record('Contact',      {user_id = [] :: [] | binary(),
-%%                         avatar   = [] : list(#'Desc'{}),
+                         avatar   = [] :: list(#'Desc'{}),
                          names    = [] :: [] | binary(),
                          surnames = [] :: [] | binary(),
                          nick     = [] :: [] | binary(),
                          reader   = [] :: [] | list(integer()),
                          unread   = 0  :: [] | integer(),
-%                         last_msg = [] :: [] | #'Message'{},
+                         last_msg = [] :: [] | #'Message'{},
                          update   = 0  :: [] | integer(),
                          created  = 0  :: [] | integer(),
                          settings = [] :: list(#'Feature'{}),
@@ -66,17 +160,29 @@ invalid_jwt_code | permission_denied | invalid_data.
 -type contactStatus() :: conact_request | authorization | contact_ignore | conatct_internal | friend | contact_last_msg
 | contact_ban | conact_banned | contact_deleted.
 
-%%================================================ROSTER RECORD ========================================================
+%%================================================STARS RECORD =========================================================
+-record('Star',         {id        = [] :: [] | integer(),
+                         client_id = [] :: [] | binary(),
+                         roster_id = [] :: [] | integer(),
+                         message   = [] :: #'Message'{},
+                         tags      = [] :: list(#'Tag'{}),
+                         status    = [] :: starType()}).
 
+-record('ExtendedStar', {star      = [] :: #'Star'{},
+                         from      = [] :: #'Contact'{} | #'Room'{}}).
+
+-type starType() :: star_add | star_remove.
+
+%%================================================ROSTER RECORD ========================================================
 -record('Roster',       {id       = [] :: [] | integer(),
                          names    = [] :: [] | binary(),
                          surnames = [] :: [] | binary(),
                          email    = [] :: [] | binary(),
                          nick     = [] :: [] | binary(),
                          userlist = [] :: list(#'Contact'{}),
-%                         roomlist = [] :: list(#'Room'{}),
-%                         favorite = [] :: list(#'ExtendedStar'{}),
-%                         tags     = [] :: list(#'Tag'{}),
+                         roomlist = [] :: list(#'Room'{}),
+                         favorite = [] :: list(#'ExtendedStar'{}),
+                         tags     = [] :: list(#'Tag'{}),
                          phone    = [] :: [] | binary(),
                          avatar   = [] :: [] | binary(),
                          update   = 0  :: [] | integer(),
@@ -85,8 +191,7 @@ invalid_jwt_code | permission_denied | invalid_data.
 -type rosterStatus() :: get_roster | create_roster | del_roster | remove_roster| nick| add_roster | update_roster |
 list_loster | patch_roster | roster_last_msg.
 
-%%================================================PROFILE RECORD ========================================================
-
+%%================================================PROFILE RECORD =======================================================
 -record('Profile',      {phone    = [] :: [] | binary(),
                          services = [] :: list(#'Service'{}),
                          rosters  = [] :: list(#'Roster'{}),
