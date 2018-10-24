@@ -55,13 +55,12 @@ class(List,T) ->
     File = filename:join(ensure(),atom_to_list(List)++".proto"),
     Fields = [
     begin {Field,Type,_,Args} = case L of
-          {_,{_,_,{atom,_,F},V},{type,_,_T,A}} -> {F,_T,V,A};
           {_,{_,_,{atom,_,F},V},{_,_,_T,A}}    -> {F,_T,V,A};
-          {_,{_,_,{atom,_,F}},{type,_,_T,A}}   -> {F,_T,[],A};
-          {_,_,{atom,_,F},{call,_,_,_}}       -> {F,binary,[],[]};
-          {_,_,{atom,_,F},{nil,_}}            -> {F,binary,[],[]};
-          {_,_,{atom,_,F}}                    -> {F,atom,[],[]};
-          {_,_,{atom,_,F},{T,_,V}}            -> {F,T,V,[]}
+          {_,{_,_,{atom,_,F}},  {type,_,_T,A}} -> {F,_T,[],A};
+             {_,_,{atom,_,F},   {call,_,_,_}}  -> {F,binary,[],[]};
+             {_,_,{atom,_,F},   {nil,_}}       -> {F,binary,[],[]};
+             {_,_,{atom,_,F}}                  -> {F,atom,[],[]};
+             {_,_,{atom,_,F},   {T,_,V}}       -> {F,T,V,[]}
           end,
           bert:info(?MODULE,"DEBUG: ~p~n",[{Field,Type,Args}]),
           tab(1) ++ infer(List,Type,Args,atom_to_list(Field),integer_to_list(Pos))
