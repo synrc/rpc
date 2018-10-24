@@ -125,11 +125,11 @@ infer(Message,Type,Args,Field,Pos)  ->
     lists:concat([keyword(Message,Type,Args,{Field,Args})," ",Field,
                   " = ",lists:concat([Pos]),";\n"]).
 
-foldr(M,[],{F,A,P},X)                          -> [];
-foldr(M,[{type,_,nil,_}|R],{F,A,P},X)          -> foldr(M,R,{A,F,P},X);
-foldr(M,[{type,_,T,[{atom,_,N}]}|R],{F,A,P},X) -> [{infer(M,N,A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1);
-foldr(M,[{type,_,T,_A}],{F,A,P},X)             -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}];
-foldr(M,[{type,_,T,_A}|R],{F,A,P},X)           -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1).
+foldr(_,[],{_,_,_},_)                          -> [];
+foldr(M,[{type,_,nil,_}|R],{F,A,P},X)          ->                                        foldr(M,R,{A,F,P},X);
+foldr(M,[{type,_,_,[{atom,_,N}]}|R],{F,A,P},X) -> [{infer(M,N, A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1);
+foldr(M,[{type,_,T,_A}|R],{F,A,P},X)           -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1);
+foldr(M,[{type,_,T,_A}],{F,_,P},X)             -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}].
 
 simple(M,T,{F,A,P}) ->
     Fold = foldr(M,[O || {_,_,J,_}=O <- T, J /= nil],{F,A,P},0),
