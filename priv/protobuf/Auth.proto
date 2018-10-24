@@ -3,6 +3,7 @@
 
 syntax = "proto3";
 
+import public "authOs.proto";
 import public "Feature.proto";
 import public "authType.proto";
 import "google/protobuf/any.proto";
@@ -11,25 +12,17 @@ option java_multiple_files = true;
 option java_package = "Auth.grpc";
 option java_outer_classname = "AuthCls";
 
-enum osEnum {
-    ios = 0;
-    android = 1;
-    web = 2;
-}
-
 message Auth {
     string client_id = 1;
     string dev_key = 2;
     string user_id = 3;
-    string phone = 4;
-    string token = 5;
+    string token = 4;
+    string data = 5;
     authType type = 6;
-    string sms_code = 7;
-    int64 attempts = 8;
-    repeated google.protobuf.Any services = 9;
-    repeated Feature settings = 10;
-    string push = 11;
-    osEnum os = 12;
-    int64 created = 13;
-    int64 last_online = 14;
+    int64 attempts = 7;
+    repeated Feature settings = 8;
+    string push = 9;
+    authOs os = 10;
+    int64 created = 11;
+    int64 last_online = 12;
 }

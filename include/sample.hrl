@@ -20,7 +20,7 @@
                          attempts    = [] :: [] | integer(),
                          settings    = [] :: list(#'Feature'{}),
                          push        = [] :: [] | binary(),
-                         os          = [] :: [] | authOs(),
+                         os          = ios :: authOs(),
                          created     = [] :: [] | integer(),
                          last_online = [] :: [] | integer() }).
 
@@ -43,7 +43,7 @@ invalid_jwt_code | permission_denied | invalid_data.
                         expiration = [] :: integer(),
                         status     = [] :: serverStatus()}).
 
--type serverType() ::  email | wallet | google | fb | phone.
+-type serverType() ::  email | wallet | google_type | fb | phone.
 
 -type serverStatus() :: servie_verified | service_not_verified.
 

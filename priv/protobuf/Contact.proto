@@ -3,6 +3,7 @@
 
 syntax = "proto3";
 
+import public "contactStatus.proto";
 import public "presence.proto";
 import public "Service.proto";
 import public "Feature.proto";
@@ -12,30 +13,17 @@ option java_multiple_files = true;
 option java_package = "Contact.grpc";
 option java_outer_classname = "ContactCls";
 
-enum statusEnum {
-    request = 0;
-    authorization = 1;
-    ignore = 2;
-    internal = 3;
-    friend = 4;
-    last_msg = 5;
-    ban = 6;
-    banned = 7;
-    deleted = 8;
-}
-
 message Contact {
-    string phone_id = 1;
-    string avatar = 2;
-    string names = 3;
-    string surnames = 4;
-    string nick = 5;
-    repeated int64 reader = 6;
-    int64 unread = 7;
-    int64 update = 8;
-    int64 created = 9;
-    repeated Feature settings = 10;
-    repeated Service services = 11;
-    presence presence = 12;
-    statusEnum status = 13;
+    string user_id = 1;
+    string names = 2;
+    string surnames = 3;
+    string nick = 4;
+    repeated int64 reader = 5;
+    int64 unread = 6;
+    int64 update = 7;
+    int64 created = 8;
+    repeated Feature settings = 9;
+    repeated Service services = 10;
+    presence presence = 11;
+    contactStatus status = 12;
 }

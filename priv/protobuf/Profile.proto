@@ -3,6 +3,7 @@
 
 syntax = "proto3";
 
+import public "profileStatus.proto";
 import public "presence.proto";
 import public "Feature.proto";
 import public "Roster.proto";
@@ -13,12 +14,6 @@ option java_multiple_files = true;
 option java_package = "Profile.grpc";
 option java_outer_classname = "ProfileCls";
 
-enum profileStatusEnum {
-    remove_profile = 0;
-    get_profile = 1;
-    patch_profile = 2;
-}
-
 message Profile {
     string phone = 1;
     repeated Service services = 2;
@@ -27,5 +22,5 @@ message Profile {
     int64 update = 5;
     int64 balance = 6;
     presence presence = 7;
-    profileStatusEnum profileStatus = 8;
+    profileStatus profileStatus = 8;
 }
