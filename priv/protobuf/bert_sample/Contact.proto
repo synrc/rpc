@@ -4,16 +4,16 @@
 syntax = "proto3";
 package bert_sample;
 
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Contact.grpc";
+option java_outer_classname = "ContactCls";
 import public "Feature.proto";
 import public "contactStatus.proto";
 import public "presence.proto";
 import public "Message.proto";
 import public "Desc.proto";
 import public "Service.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Contact.grpc";
-option java_outer_classname = "ContactCls";
 
 message Contact {
     string user_id = 1;

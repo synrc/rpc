@@ -4,13 +4,13 @@
 syntax = "proto3";
 package bert_sample;
 
-import public "Feature.proto";
-import public "serverType.proto";
-import public "serverStatus.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
 option java_package = "Service.grpc";
 option java_outer_classname = "ServiceCls";
+import public "Feature.proto";
+import public "serverType.proto";
+import public "serverStatus.proto";
 
 message Service {
     string id = 1;

@@ -79,7 +79,7 @@ header(N) ->
     "option java_generic_services = true;\n",
     "option java_multiple_files = true;\n",
     "option java_package = \"", N, ".grpc\";\n"
-    "option java_outer_classname = \"", N, "Cls\";\n\n", Publics ]).
+    "option java_outer_classname = \"", N, "Cls\";\n", Publics, "\n" ]).
 
 enums() -> j([ begin {_,F} = Name, Enums = var({enum,Name}),
                      enum(F,"Enum",Enums) end || Name <- var(enums) ]).

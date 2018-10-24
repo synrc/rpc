@@ -5,16 +5,16 @@ syntax = "proto3";
 package bert_sample;
 
 import "google/protobuf/Any.proto";
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Message.grpc";
+option java_outer_classname = "MessageCls";
 import public "messageType.proto";
 import public "messageStatus.proto";
 import public "muc.proto";
 import public "p2p.proto";
 import public "Desc.proto";
 import public "container.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Message.grpc";
-option java_outer_classname = "MessageCls";
 
 message Message {
     int64 id = 1;

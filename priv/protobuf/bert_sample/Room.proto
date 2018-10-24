@@ -4,6 +4,10 @@
 syntax = "proto3";
 package bert_sample;
 
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Room.grpc";
+option java_outer_classname = "RoomCls";
 import public "Member.proto";
 import public "Feature.proto";
 import public "Link.proto";
@@ -11,10 +15,6 @@ import public "Message.proto";
 import public "roomType.proto";
 import public "Desc.proto";
 import public "roomStatus.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Room.grpc";
-option java_outer_classname = "RoomCls";
 
 message Room {
     string id = 1;

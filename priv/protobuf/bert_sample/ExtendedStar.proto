@@ -4,13 +4,13 @@
 syntax = "proto3";
 package bert_sample;
 
-import public "Room.proto";
-import public "Star.proto";
-import public "Contact.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
 option java_package = "ExtendedStar.grpc";
 option java_outer_classname = "ExtendedStarCls";
+import public "Room.proto";
+import public "Star.proto";
+import public "Contact.proto";
 
 message ExtendedStar {
     Star star = 1;

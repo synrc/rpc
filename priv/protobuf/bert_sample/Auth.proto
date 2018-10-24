@@ -4,13 +4,13 @@
 syntax = "proto3";
 package bert_sample;
 
-import public "authOs.proto";
-import public "Feature.proto";
-import public "authType.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
 option java_package = "Auth.grpc";
 option java_outer_classname = "AuthCls";
+import public "authOs.proto";
+import public "Feature.proto";
+import public "authType.proto";
 
 message Auth {
     string client_id = 1;

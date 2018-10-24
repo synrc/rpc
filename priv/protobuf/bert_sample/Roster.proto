@@ -4,15 +4,15 @@
 syntax = "proto3";
 package bert_sample;
 
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Roster.grpc";
+option java_outer_classname = "RosterCls";
 import public "Room.proto";
 import public "Tag.proto";
 import public "Contact.proto";
 import public "rosterStatus.proto";
 import public "ExtendedStar.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Roster.grpc";
-option java_outer_classname = "RosterCls";
 
 message Roster {
     int64 id = 1;

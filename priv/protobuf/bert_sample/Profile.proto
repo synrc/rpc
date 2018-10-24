@@ -4,15 +4,15 @@
 syntax = "proto3";
 package bert_sample;
 
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Profile.grpc";
+option java_outer_classname = "ProfileCls";
 import public "Roster.proto";
 import public "Feature.proto";
 import public "profileStatus.proto";
 import public "presence.proto";
 import public "Service.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Profile.grpc";
-option java_outer_classname = "ProfileCls";
 
 message Profile {
     string phone = 1;

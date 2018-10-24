@@ -5,6 +5,10 @@ syntax = "proto3";
 package bert_sample;
 
 import "google/protobuf/Any.proto";
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "Member.grpc";
+option java_outer_classname = "MemberCls";
 import public "Feature.proto";
 import public "presence.proto";
 import public "muc.proto";
@@ -12,10 +16,6 @@ import public "p2p.proto";
 import public "memberStatus.proto";
 import public "Service.proto";
 import public "container.proto";
-option java_generic_services = true;
-option java_multiple_files = true;
-option java_package = "Member.grpc";
-option java_outer_classname = "MemberCls";
 
 message Member {
     int64 id = 1;
