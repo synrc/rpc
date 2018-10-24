@@ -4,6 +4,7 @@
 -include("io.hrl").
 
 tab(N) -> bert:tab(N).
+m(X,Y) -> list_to_integer(lists:concat([X,Y])).
 parse_transform(Forms, _Options) -> lists:map(fun save/1,gen(Forms)), Forms.
 gen(Forms) -> lists:flatten([ form(F) || F <- Forms ]).
 save({[],_}) -> [];
@@ -112,9 +113,9 @@ infer(Message,union,Args,Field,Pos) ->
                     (_) -> false end, Args),
     application:set_env(bert,{enum,{Message,Field}},[ X || {_,_,X} <- Atoms ]),
     application:set_env(bert, enums, [{Message,Field}] ++ application:get_env(bert,enums,[])),
-    %io:format("INFER: ~p~n",[{Atoms,Rest}]),
-    case {Message,Atoms,Rest} of
-         {'Message',[],_} -> io:format("UNION: ~p~n",[{Message,Field}]), simple(Message,Args,{Field,Args,Pos});
+    %io:format("INFER: ~p~n",[{Message,Field,Atoms,Rest}]),
+    case {Field,Atoms,Rest} of
+         {"link",[],_} -> io:format("UNION: ~p~n",[Args]), simple(Message,Args,{Field,Args,Pos});
          {_,[],_} -> simple(Message,Args,{Field,Args,Pos});
          {_,_,[{type,_,nil,[]}]} -> Field ++ "Enum "++ Field ++" = " ++ Pos ++ ";\n";
          {_,_,[]} -> Field ++ "Enum " ++ Field ++ " = " ++ Pos ++ ";\n";
@@ -123,18 +124,20 @@ infer(Message,union,Args,Field,Pos) ->
 infer(Message,Type,Args,Field,Pos)  ->
     keyword(Message,Type,Args,{Field,Args}) ++ " " ++ Field ++ " = " ++ nitro:to_list(Pos) ++ ";\n".
 
-simple(Message,[{type,_,nil,_},{type,_,record,[{atom,_,Name}]}],{Field,Args,Pos}) ->
-    infer(Message,Name,Args,Field,Pos);
-simple(Message,[{type,_,nil,_},{type,_,Name,Args}],{Field,_Args2,Pos}) ->
-    infer(Message,Name,Args,Field,Pos);
-simple(Message,[{type,_,Name,Args},{type,_,nil,_}],{Field,_Args2,Pos}) ->
-    infer(Message,Name,Args,Field,Pos);
-simple(Message,Types,{Field,Args,Pos}) when length(Types) == 1 ->
-    infer(Message,[Types],Args,Field,integer_to_list(Pos));
-simple(Message,Types,{Field,Args,_Pos}) ->
-    "oneof " ++ Field ++ " {\n" ++
-    lists:concat([ tab(2) ++ infer(Message,Name,Args,lists:concat(["a",Pos]),integer_to_list(Pos+10*length(Types)*list_to_integer(_Pos)))
-                   || {{type,_,Type,[{atom,_,Name}]},Pos}
-                   <- lists:zip(Types,lists:seq(1,length(Types))) ]) ++ tab(1) ++ "}\n";
-simple(_Message,_,_) -> "google.protobuf.Any".
+fold(Message,[],{Field,Args,Pos},X) -> [];
+fold(Message,[{type,_,nil,_}|Rest],{Field,Args,Pos},X) -> fold(Message,Rest,{Args,Field,Pos},X);
+fold(Message,[{type,_,Type,[{atom,_,Name}]}|Rest],{Field,Args,Pos},X) ->
+    [ {infer(Message,Name,Args,lists:concat([Field,Pos,X]),m(Pos,X))}] ++ fold(Message,Rest,{Field,Args,Pos},X+1);
+fold(Message,[{type,_,Type,_Args}],{Field,Args,Pos},X) ->
+    [ {infer(Message,Type,_Args,Field,Pos)}];
+fold(Message,[{type,_,Type,_Args}|Rest],{Field,Args,Pos},X) ->
+    [ {infer(Message,Type,_Args,lists:concat([Field,Pos,X]),m(Pos,X))}] ++ fold(Message,Rest,{Field,Args,Pos},X+1).
 
+simple(M,T,{F,A,P}) ->
+    Fold = fold(M,[O || {_,_,J,_}=O <- T, J /= nil],{F,A,P},0),
+    case length(Fold) of
+         1 -> [{J}] = Fold, J;
+         _ -> io:format("FOLD ~p: ~p~n",[M,Fold]),
+              lists:concat(["oneof ",F," {\n",
+              lists:concat(lists:map(fun({X})->tab(2)++X end,Fold)),tab(1),"}\n"]) end;
+simple(_Message,_,_) -> "google.protobuf.Any".

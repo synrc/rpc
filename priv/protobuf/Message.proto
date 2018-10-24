@@ -19,8 +19,8 @@ message Message {
     int64 id = 1;
     container container = 2;
     oneof feed_id {
-        muc a1 = 61;
-        p2p a2 = 62;
+        muc feed_id30 = 30;
+        p2p feed_id31 = 31;
     }
     int64 prev = 4;
     int64 next = 5;
@@ -31,7 +31,8 @@ message Message {
     repeated Desc files = 10;
     messageType type = 11;
     oneof link {
-        Message a3 = 363;
+        int64 link120 = 120;
+        Message link121 = 121;
     }
     repeated google.protobuf.Any seenby = 13;
     repeated int64 repliedby = 14;

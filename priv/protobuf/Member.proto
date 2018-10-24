@@ -20,8 +20,8 @@ message Member {
     int64 id = 1;
     container container = 2;
     oneof feed_id {
-        muc a1 = 61;
-        p2p a2 = 62;
+        muc feed_id30 = 30;
+        p2p feed_id31 = 31;
     }
     int64 prev = 4;
     int64 next = 5;

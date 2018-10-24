@@ -31,7 +31,7 @@ message Room {
     int64 unread = 12;
     repeated int64 mentions = 13;
     repeated int64 readers = 14;
-    Message last_msg = 15;
+    Message last_msg150 = 150;
     int64 update = 16;
     int64 created = 17;
     roomStatus status = 18;

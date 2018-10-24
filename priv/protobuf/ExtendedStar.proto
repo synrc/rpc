@@ -15,7 +15,7 @@ option java_outer_classname = "ExtendedStarCls";
 message ExtendedStar {
     Star star = 1;
     oneof from {
-        Contact a1 = 41;
-        Room a2 = 42;
+        Contact from20 = 20;
+        Room from21 = 21;
     }
 }

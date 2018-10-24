@@ -23,7 +23,7 @@ message Contact {
     string nick = 5;
     repeated int64 reader = 6;
     int64 unread = 7;
-    Message last_msg = 8;
+    Message last_msg80 = 80;
     int64 update = 9;
     int64 created = 10;
     repeated Feature settings = 11;
