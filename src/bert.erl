@@ -7,8 +7,9 @@ init([])       -> {ok, {{one_for_one, 5, 10}, [] }}.
 start(_, _)    -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 stop(_)        -> ok.
 tab(N)         -> lists:duplicate(4*N,$ ).
-log_modules()  -> application:get_env(bert,log_modules,[]).
-level()        -> application:get_env(bert,log_level,info).
+
+log_modules()  -> application:get_env(?MODULE,log_modules,[]).
+level()        -> application:get_env(?MODULE,log_level,info).
 level(none)    -> 3;
 level(error)   -> 2;
 level(warning) -> 1;
