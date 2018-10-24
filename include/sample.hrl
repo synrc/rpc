@@ -3,46 +3,53 @@
 
 -type presence()  :: online | offline.
 
--type authType()  :: google_auth | facebook_auth | mobile_auth | email_auth |
-                     voice | resend | verify | push | logout | get | delete | clear.
-
--type authStatus() :: invalid_version | mismatch_user_data | number_not_allowed |
-                     session_not_found | attempts_expired | invalid_sms_code |
-                     invalid_jwt_code | permission_denied | invalid_data.
-
 -record('Feature',      {id    = [] :: [] | binary(),
                          key   = [] :: [] | binary(),
                          value = [] :: [] | binary(),
                          group = [] :: [] | binary()}).
 
+%%================================================AUTH RECORD ==========================================================
+-type authOs() :: ios | android | web.
+
 -record('Auth',         {client_id   = [] :: [] | binary(),
                          dev_key     = [] :: [] | binary(),
                          user_id     = [] :: [] | binary(),
-                         phone       = [] :: [] | binary(),
                          token       = [] :: [] | binary(),
-                         type        = email :: authType(),
-                         sms_code    = [] :: [] | binary(),
+                         data        = [] :: [] | binary(),
+                         type        = [] :: authType(),
                          attempts    = [] :: [] | integer(),
-                         services    = [] :: list(atom()),
                          settings    = [] :: list(#'Feature'{}),
                          push        = [] :: [] | binary(),
-                         os          = [] :: [] | ios | android | web,
+                         os          = [] :: [] | authOs(),
                          created     = [] :: [] | integer(),
                          last_online = [] :: [] | integer() }).
 
--record('AuthError',   {codes    = [] :: list(authStatus()),
-                        data     = [] :: [] | #'Auth'{}}).
+-record('AuthError',    {codes    = [] :: list(authStatus()),
+                         data     = [] :: [] | #'Auth'{}}).
 
--record('Service',      {id        = [] :: [] | binary(),
-                        type       = [] :: [] | email | vox | aws | wallet,
-                        data       = [] :: term(),
-                        login      = [] :: [] | binary(),
-                        password   = [] :: [] | binary(),
-                        expiration = [] :: [] | integer(),
-                        serviceStatus     = [] :: [] | verified | added}).
 
--record('Contact',      {phone_id = [] :: [] | binary(),
-                         avatar   = [] :: [] | binary(),
+
+-type authType()  :: google_auth | facebook_auth | mobile_auth | email_auth |
+voice | resend | verify | push | logout | get | delete | clear.
+
+-type authStatus() :: invalid_version | mismatch_user_data | number_not_allowed |
+session_not_found | attempts_expired | invalid_sms_code |
+invalid_jwt_code | permission_denied | invalid_data.
+
+-record('Service',      {id        = [] :: binary(),
+                        data       = [] :: binary(),
+                        type       = [] :: serverType(),
+                        setting    = [] :: list(#'Feature'{}),
+                        expiration = [] :: integer(),
+                        status     = [] :: serverStatus()}).
+
+-type serverType() ::  email | wallet | google | fb | phone.
+
+-type serverStatus() :: servie_verified | service_not_verified.
+
+%%================================================CONTACT RECORD =======================================================
+-record('Contact',      {user_id = [] :: [] | binary(),
+%%                         avatar   = [] : list(#'Desc'{}),
                          names    = [] :: [] | binary(),
                          surnames = [] :: [] | binary(),
                          nick     = [] :: [] | binary(),
@@ -53,9 +60,13 @@
                          created  = 0  :: [] | integer(),
                          settings = [] :: list(#'Feature'{}),
                          services = [] :: list(#'Service'{}),
-             		presence = offline :: presence(),
-                         status   = [] :: [] | request | authorization | ignore | internal
-                                             | friend | last_msg | ban | banned | deleted }).
+             		         presence = offline :: presence(),
+                         status   = [] :: contactStatus()}).
+
+-type contactStatus() :: conact_request | authorization | contact_ignore | conatct_internal | friend | contact_last_msg
+| contact_ban | conact_banned | contact_deleted.
+
+%%================================================ROSTER RECORD ========================================================
 
 -record('Roster',       {id       = [] :: [] | integer(),
                          names    = [] :: [] | binary(),
@@ -69,9 +80,12 @@
                          phone    = [] :: [] | binary(),
                          avatar   = [] :: [] | binary(),
                          update   = 0  :: [] | integer(),
-                         rosterStatus   = [] :: [] | get_roster | create_roster | del_roster | remove_roster
-                                                   | nick
-                                             | add_roster | update_roster | list_loster | patch_roster | roster_last_msg }).
+                         rosterStatus   = [] :: rosterStatus() }).
+
+-type rosterStatus() :: get_roster | create_roster | del_roster | remove_roster| nick| add_roster | update_roster |
+list_loster | patch_roster | roster_last_msg.
+
+%%================================================PROFILE RECORD ========================================================
 
 -record('Profile',      {phone    = [] :: [] | binary(),
                          services = [] :: list(#'Service'{}),
@@ -80,6 +94,8 @@
                          update   = 0  :: integer(),
                          balance  = 0  :: integer(),
                          presence = offline :: presence(),
-                         profileStatus   = [] :: [] | remove_profile | get_profile | patch_profile }).
+                         profileStatus   = [] :: profileStatus() }).
+
+-type profileStatus() :: remove_profile | get_profile | patch_profile.
 
 -endif.
