@@ -1,5 +1,5 @@
--ifndef(ROSTER_HRL).
--define(ROSTER_HRL, true).
+-ifndef(SAMPLE_HRL).
+-define(SAMPLE_HRL, true).
 
 -type starType()      :: star_add | star_remove.
 -type roomType()      :: group | channel.

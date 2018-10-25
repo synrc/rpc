@@ -12,19 +12,17 @@ option java_outer_classname = "ContactCls";
 import public "Feature.proto";
 import public "contactStatus.proto";
 import public "presence.proto";
-import public "Message.proto";
-import public "Desc.proto";
 import public "Service.proto";
 
 message Contact {
     string user_id = 1;
-    repeated Desc avatar = 2;
+    repeated int64 avatar = 2;
     string names = 3;
     string surnames = 4;
     string nick = 5;
     repeated google.protobuf.Any reader = 6;
     int64 unread = 7;
-    Message last_msg = 8;
+    int64 last_msg = 8;
     int64 update = 9;
     int64 created = 10;
     repeated Feature settings = 11;

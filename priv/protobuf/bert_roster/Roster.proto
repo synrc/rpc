@@ -8,11 +8,8 @@ option java_generic_services = true;
 option java_multiple_files = true;
 option java_package = "Roster.grpc";
 option java_outer_classname = "RosterCls";
-import public "Room.proto";
-import public "Tag.proto";
 import public "Contact.proto";
 import public "rosterStatus.proto";
-import public "ExtendedStar.proto";
 
 message Roster {
     int64 id = 1;
@@ -21,9 +18,9 @@ message Roster {
     string email = 4;
     string nick = 5;
     repeated Contact userlist = 6;
-    repeated Room roomlist = 7;
-    repeated ExtendedStar favorite = 8;
-    repeated Tag tags = 9;
+    repeated int64 roomlist = 7;
+    repeated int64 favorite = 8;
+    repeated int64 tags = 9;
     string phone = 10;
     string avatar = 11;
     int64 update = 12;

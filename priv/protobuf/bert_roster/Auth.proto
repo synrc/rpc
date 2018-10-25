@@ -26,3 +26,4 @@ message Auth {
     int64 created = 11;
     int64 last_online = 12;
 }
+

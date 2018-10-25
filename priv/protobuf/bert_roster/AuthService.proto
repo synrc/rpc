@@ -1,0 +1,22 @@
+// Manually set up
+
+syntax = "proto3";
+package bert_roster;
+
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "AuthService.grpc";
+option java_outer_classname = "AuthServiceCls";
+import public "Auth.proto";
+
+service AuthenticationService {
+    rpc login(Auth) returns (Auth);
+    rpc resend(Auth) returns (Auth);
+    rpc call(Auth) returns (Auth);
+    rpc confirm(Auth) returns (Auth);
+    rpc update_push_token(Auth) returns (Auth);
+    rpc get_sessions(Auth) returns (Auth);
+    rpc delete_session(Auth) returns (Auth);
+    rpc delete_all_session(Auth) returns (Auth);
+    rpc update_token(Auth) returns (Auth);
+}
