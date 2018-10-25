@@ -5,7 +5,6 @@
 -type linkStatus()    :: lgen | lcheck | ladd | ldelete | lupdate.
 -type memberStatus()  :: admin | member | removed | patch | owner.
 -type container()     :: chain | cur.
--type tagType()       :: tag_create | tag_remove | tag_edit.
 -type roomStatus()    :: room_create | room_leave| room_add | room_remove | room_patch |
                          room_get | room_delete | room_last_msg.
 
@@ -13,16 +12,11 @@
 -record(p2p,            {from = [] :: [] | binary(),
                          to   = [] :: [] | binary() }).
 
--record('Desc',         {id       = [] :: binary(),
-                         mime     = <<"text">> :: binary(),
-                         payload  = [] :: binary(),
-                         parentid = [] :: binary(),
-                         data     = [] :: list(#'Feature'{})}).
-
--record('Tag',          {roster_id = [] :: [] | integer(),
-                         name      = [] :: binary(),
-                         color     = [] :: binary(),
-                         tag_status    = [] :: tagType()}).
+-record('Link',         {id        = [] :: [] | binary(),
+                         name      = [] :: [] | binary(),
+                         room_id   = [] :: [] | binary(),
+                         created   = 0  :: [] | integer(),
+                         links_status    = [] :: linkStatus()}).
 
 -record('Member',       {id        = [] :: [] | integer(),
                          container = chain :: container(),
@@ -41,12 +35,6 @@
                          services  = [] :: list(#'Service'{}),
                          presence  = offline :: presence(),
                          member_status    = member :: memberStatus()}).
-
--record('Link',         {id        = [] :: [] | binary(),
-                         name      = [] :: [] | binary(),
-                         room_id   = [] :: [] | binary(),
-                         created   = 0  :: [] | integer(),
-                         links_status    = [] :: linkStatus()}).
 
 -record('Room',         {id          = [] :: [] | binary(),
                          name        = [] :: [] | binary(),

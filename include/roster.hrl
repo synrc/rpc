@@ -22,7 +22,7 @@
                          created  = 0  :: [] | integer(),
                          settings = [] :: list(#'Feature'{}),
                          services = [] :: list(#'Service'{}),
-             		 presence = offline :: presence(),
+             		         presence = offline :: presence(),
                          status   = [] :: contactStatus()}).
 
 -record('Roster',       {id       = [] :: [] | integer(),

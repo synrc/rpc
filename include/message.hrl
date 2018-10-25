@@ -9,12 +9,6 @@
 -record(p2p,            {from = [] :: [] | binary(),
                          to   = [] :: [] | binary() }).
 
--record('Desc',         {id       = [] :: binary(),
-                         mime     = <<"text">> :: binary(),
-                         payload  = [] :: binary(),
-                         parentid = [] :: binary(),
-                         data     = [] :: list(#'Feature'{})}).
-
 -record('Message',      {id        = [] :: [] | integer(),
                          container = chain :: container(),
                          feed_id   = [] :: #muc{} | #p2p{},
