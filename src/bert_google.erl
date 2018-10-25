@@ -107,7 +107,7 @@ keyword(_M,N,_)       -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]).
 
 infer(_,[],_,_,_) -> [];
 infer(M,union,[{type,_,nil,_},{type,_,record,X}],F,P) -> infer(M,record,X,F,P);
-infer(M,union,[{type,_,nil,_},{type,_,N,_}=X],F,P) -> infer(M,N,X,F,P);
+infer(M,union,[{type,_,nil,_},{type,_,N,_}=X],F,P)    -> infer(M,N,X,F,P);
 infer(M,union,T,F,P) ->
     A = [ O || {_,_,J,_} = O <- T, J /= nil ],
     {Atoms,Rest} = lists:partition(fun ({atom,_,_}) -> true; (_) -> false end, A),
