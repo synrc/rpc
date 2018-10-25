@@ -7,8 +7,10 @@ option java_package = "MessageService.grpc";
 option java_outer_classname = "MessageServiceCls";
 import public "Message.proto";
 import public "History.proto";
+import public "Job.proto";
 
 service MessageService {
+    //Message
     rpc sendMessage(Message) returns (Message);
     rpc delete(Message) returns (Message);
     rpc deleteForAll(Message) returns (Message);
@@ -17,6 +19,14 @@ service MessageService {
     rpc updateMessage(Message) returns (Message);
     rpc translateMessage(Message) returns (Message);
     rpc trancribeMessage(Message) returns (Message);
+
+    //Job
+    rpc forwardMessage(Job) returns (Job);
+    rpc createScheduledMessage(Job) returns (Job);
+    rpc deleteScheduledMessage(Job) returns (Job);
+    rpc editScheduledMessage(Job) returns (Job);
+
+    //History
     rpc getMessage(History) rerurns (History);
     rpc getMessagesToEndFromMessageId(History) rerurns (History);
     rpc getAllMessages(History) rerurns (History);

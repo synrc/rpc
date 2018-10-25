@@ -5,6 +5,7 @@
 -type messageType()   :: sys | reply | forward | read | edited | cursor.
 -type messageStatus() :: masync | mdelete | mclear| mupdate | medit.
 -type historyType()   :: updated | get | update | last_loaded | last_msg | get_reply.
+-type jobType()       ::  init | update | delete | pending | stop | complete.
 
 -record(muc,            {name = [] :: [] | binary() }).
 -record(p2p,            {from = [] :: [] | binary(),
@@ -33,5 +34,26 @@
                          entity_id = 0  :: [] | integer(),
                          data      = [] :: integer(),
                          status    = [] :: historyType()}).
+
+-record(act,           {name= <<"publish">> :: [] | binary(),
+                        data=[]:: binary() | integer() | list(term())}).
+
+-record(messageEvent, { name       = [] :: [] | atom(),
+                        payload    = [] :: binary(),
+                        timeout    = [] :: {integer(),{integer(),integer(),integer()}},
+                        module     = [] :: atom()}).
+
+-record('Job',          {id        = [] :: [] | integer(),
+                         container = chain :: container(),
+                         feed_id   = [] :: #act{},
+                         prev      = [] :: [] | integer(),
+                         next      = [] :: [] | integer(),
+                         context   = [] :: [] | integer() | binary(),
+                         proc      = [] :: [] | integer(),
+                         time      = [] :: integer(),
+                         data      = [] :: list( #'Message'{}),
+                         events    = [] :: list(#messageEvent{}),
+                         settings  = [] :: list(#'Feature'{}),
+                         status    = [] ::  jobType()}).
 
 -endif.
