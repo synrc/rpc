@@ -1,5 +1,6 @@
 -module(bert_javascript).
 -export([parse_transform/2]).
+-compile(export_all).
 -include("bert.hrl").
 
 parse_transform(Forms, _Options) ->
