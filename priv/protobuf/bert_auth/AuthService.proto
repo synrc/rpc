@@ -12,7 +12,7 @@ service AuthenticationService {
     rpc resendSMS(Auth) returns (Auth);
     rpc call(Auth) returns (Auth);
     rpc confirm(Auth) returns (Auth);
-    rpc updatePushTokenAuth) returns (Auth);
+    rpc updatePushToken(Auth) returns (Auth);
     rpc getSessions(Auth) returns (Auth);
     rpc deleteSession(Auth) returns (Auth);
     rpc deleteAllSessions(Auth) returns (Auth);
