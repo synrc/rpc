@@ -1,5 +1,6 @@
 -module(bert_swift).
 -export([parse_transform/2]).
+-compile(export_all).
 -include("bert.hrl").
 
 parse_transform(Forms, _Options) -> switch(directives(Forms)), Forms.
