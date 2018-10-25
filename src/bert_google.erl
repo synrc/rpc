@@ -58,7 +58,7 @@ class(Msg,T) ->
           {_,{_,_,{atom,_,F}},  {type,_,_T,A}} -> {F,_T,[],A};
              {_,_,{atom,_,F},   {call,_,_,_}}  -> {F,binary,[],[]};
              {_,_,{atom,_,F},   {nil,_}}       -> {F,binary,[],[]};
-             {_,_,{atom,_,F}}                  -> {F,atom,[],[]};
+             {_,_,{atom,_,F}}                  -> {F,atom,  [],[]};
              {_,_,{atom,_,F},   {T,_,V}}       -> {F,T,V,[]}
           end,
           bert:info(?MODULE,"DEBUG: ~p~n",[{Field,Type,Args}]),
@@ -106,7 +106,7 @@ keyword(_M,N,_)       -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]).
 % Message Field Args Pos Name Rest X
 
 infer(_,[],_,_,_) -> [];
-infer(M,union,[{type,_,nil,_},{type,_,record,[{atom,_,N}]=X}],F,P) -> infer(M,record,X,F,P);
+infer(M,union,[{type,_,nil,_},{type,_,record,X}],F,P) -> infer(M,record,X,F,P);
 infer(M,union,[{type,_,nil,_},{type,_,N,_}=X],F,P) -> infer(M,N,X,F,P);
 infer(M,union,T,F,P) ->
     A = [ O || {_,_,J,_} = O <- T, J /= nil ],
@@ -123,11 +123,13 @@ infer(M,union,T,F,P) ->
 infer(Message,Type,Args,Field,Pos)  ->
     lists:concat([keyword(Message,Type,Args)," ",Field," = ",lists:concat([Pos]),";\n"]).
 
-foldr(M,[],{F,A,P},X)                          -> [];
-foldr(M,[{type,_,nil,_}|R],{F,A,P},X)          -> foldr(M,R,{A,F,P},X);
-foldr(M,[{type,_,record,[{atom,_,N}]}|R],{F,A,P},X) -> [{infer(M,N, A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1);
-foldr(M,[{type,_,T,_A}],{F,A,P},X)             -> [{infer(M,T,_A,j([F,P,X]),j([P,X]))}];
-foldr(M,[{type,_,T,_A}|R],{F,A,P},X)           -> [{infer(M,T,_A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1).
+foldr(_,[],{_,_,_},_) -> [];
+foldr(M,[{type,_,nil,_}|R],{F,A,P},X) -> foldr(M,R,{A,F,P},X);
+foldr(M,[{type,_,record,[{atom,_,N}]}|R],{F,A,P},X) ->
+    [{infer(M,N, A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1);
+foldr(M,[{type,_,T,_A}],{F,_,P},X) -> [{infer(M,T,_A,j([F,P,X]),j([P,X]))}];
+foldr(M,[{type,_,T,_A}|R],{F,A,P},X) ->
+    [{infer(M,T,_A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1).
 
 simple(M,T,{F,A,P}) ->
     Fold = foldr(M,T,{F,A,P},0),
