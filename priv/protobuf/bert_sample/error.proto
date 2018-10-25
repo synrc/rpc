@@ -10,5 +10,5 @@ option java_package = "error.grpc";
 option java_outer_classname = "errorCls";
 
 message error {
-    string err_id10 = 10;
+    string err_id = 1;
 }

@@ -1,7 +1,6 @@
 -module(bert_javascript).
 -export([parse_transform/2]).
--compile(export_all).
--include("io.hrl").
+-include("bert.hrl").
 
 parse_transform(Forms, _Options) ->
     Files = application:get_env(bert, allowed_hrl, []),
@@ -62,14 +61,14 @@ encode(_F) -> lists:concat([
     "\tdefault: return eval('enc'+x.tup)(x); }\n"
     "    } else return scalar(x);\n}\n\n"]).
 
-case_fields(Forms,Prefix) ->
-    string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
-case_field({attribute,_,record,{List,_T}},Prefix) ->
-    lists:concat(["case '",List,"': return ",Prefix,List,"(x); break"]);
-case_field(_Form,_) ->  [].
+%case_fields(Forms,Prefix) ->
+%    string:join([ case_field(F,Prefix) || F <- Forms, case_field(F,Prefix) /= []],";\n\t").
+%case_field({attribute,_,record,{List,_T}},Prefix) ->
+%    lists:concat(["case '",List,"': return ",Prefix,List,"(x); break"]);
+%case_field(_Form,_) ->  [].
 
 decoder(List,T) ->
-   L = nitro:to_list(List),
+   L = lists:concat([List]),
    Fields = filter_fields(T),
    case Fields of [] -> []; _ ->
    iolist_to_binary(["function len",L,"() { return ",integer_to_list(1+length(Fields)),"; }\n"
@@ -79,7 +78,7 @@ decoder(List,T) ->
      ";\n    return clean(r); }\n\n"]) end.
 
 encoder(List,T) ->
-   Class = nitro:to_list(List),
+   Class = lists:concat([List]),
    Fields = filter_fields(T),
    Names = element(1,lists:unzip(Fields)),
    StrNames = case length(Fields) < 12 of

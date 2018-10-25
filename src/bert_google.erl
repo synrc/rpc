@@ -1,12 +1,11 @@
 -module(bert_google).
 -export([parse_transform/2]).
--include("io.hrl").
+-include("bert.hrl").
 
 % mini prelude
 
 tab(N)    -> bert:tab(N).
 undup(X)  -> sets:to_list(sets:from_list(X)).
-m(X,Y)    -> list_to_integer(j([X,Y])).
 j(X)      -> lists:concat(X).
 j(X,Y)    -> string:join(X,Y).
 var(K)    -> application:get_env(bert,K,[]).
@@ -51,11 +50,11 @@ form(_X) ->
     bert:info(?MODULE,"UNKNOWN: ~p~n",[_X]),
     {[],[]}.
 
-class(List,T) ->
-    File = filename:join(ensure(),atom_to_list(List)++".proto"),
+class(Msg,T) ->
+    File = filename:join(ensure(),atom_to_list(Msg)++".proto"),
     Fields = [
     begin {Field,Type,_,Args} = case L of
-          {_,{_,_,{atom,_,F},V},{_,_,_T,A}}    -> {F,_T,V,A};
+          {_,{_,_,{atom,_,F},V},{_,_,_T,A}}    -> {F,_T,V, A};
           {_,{_,_,{atom,_,F}},  {type,_,_T,A}} -> {F,_T,[],A};
              {_,_,{atom,_,F},   {call,_,_,_}}  -> {F,binary,[],[]};
              {_,_,{atom,_,F},   {nil,_}}       -> {F,binary,[],[]};
@@ -63,10 +62,9 @@ class(List,T) ->
              {_,_,{atom,_,F},   {T,_,V}}       -> {F,T,V,[]}
           end,
           bert:info(?MODULE,"DEBUG: ~p~n",[{Field,Type,Args}]),
-          tab(1) ++ infer(List,Type,Args,atom_to_list(Field),integer_to_list(Pos))
+          tab(1) ++ infer(Msg,Type,Args,atom_to_list(Field),lists:concat([Pos]))
     end || {L,Pos} <- lists:zip(T,lists:seq(1,length(T))) ],
-    Res = j(["message ",List, " {\n", Fields, "}\n"]),
-    {File,[header(List),enums(),Res]}.
+    {File,[header(Msg),enums(),j(["message ",Msg," {\n",Fields,"}\n"])]}.
 
 header(N) ->
     bert:info(?MODULE,"TRACE: ~p~n",[var({deps,N})]),
@@ -89,27 +87,29 @@ enum(F,Sfx,Enums) ->
         <- lists:zip(lists:seq(0,length(Enums)-1),Enums) ] ++ "}\n\n",
     case Enums of [] -> []; _ -> X end.
 
-
-keyword(_M,list,[{type,_,atom,[]}],_)          -> "repeated " ++ any(_M);
-keyword(_M,list,[{type,_,union,_}],_)          -> "repeated " ++ any(_M);
-keyword(_M,list,[{type,_,record,[{_,_,N}]}],_) -> svar({deps,_M}, [N] ++ var({deps,_M})), j(["repeated ", N]);
-keyword(_M,list,[{user_type,_,N,[]}],_)        -> svar({deps,_M}, [N] ++ var({deps,_M})), j(["repeated ", N]);
-keyword(_M,record,[{atom,_,N}],_)              -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]);
-keyword(_M,list,  [{type,_,integer,[]}],_)     -> "repeated int64";
-keyword(_M,list,_,_)                           -> "repeated " ++ any(_M);
-keyword(_M,term,_,_)    -> "bytes";
-keyword(_M,integer,_,_) -> "int64";
-keyword(_M,boolean,_,_) -> "bool";
-keyword(_M,atom,_,_)    -> "string";
-keyword(_M,binary,_,_)  -> "string";
-keyword(_M,union,_,_X)  -> "oneof";
-keyword(_M,nil,_,_)     -> "bytes";
-keyword(_M,N,_,_)       -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]).
+keyword(_M,list,[{type,_,atom,[]}])          -> "repeated " ++ any(_M);
+keyword(_M,list,[{type,_,union,_}])          -> "repeated " ++ any(_M);
+keyword(_M,list,[{type,_,record,[{_,_,N}]}]) -> svar({deps,_M}, [N] ++ var({deps,_M})), j(["repeated ", N]);
+keyword(_M,list,[{user_type,_,N,[]}])        -> svar({deps,_M}, [N] ++ var({deps,_M})), j(["repeated ", N]);
+keyword(_M,record,[{atom,_,N}])              -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]);
+keyword(_M,list,  [{type,_,integer,[]}])     -> "repeated int64";
+keyword(_M,list,_)                           -> "repeated " ++ any(_M);
+keyword(_M,term,_)    -> "bytes";
+keyword(_M,integer,_) -> "int64";
+keyword(_M,boolean,_) -> "bool";
+keyword(_M,atom,_)    -> "string";
+keyword(_M,binary,_)  -> "string";
+keyword(_M,union,_)   -> "oneof";
+keyword(_M,nil,_)     -> "bytes";
+keyword(_M,N,_)       -> svar({deps,_M}, [N] ++ var({deps,_M})), j([N]).
 
 % Message Field Args Pos Name Rest X
 
-infer(_M,[],_A,_F,_P) -> [];
-infer(M,union,A,F,P) ->
+infer(_,[],_,_,_) -> [];
+infer(M,union,[{type,_,nil,_},{type,_,record,[{atom,_,N}]=X}],F,P) -> infer(M,record,X,F,P);
+infer(M,union,[{type,_,nil,_},{type,_,N,_}=X],F,P) -> infer(M,N,X,F,P);
+infer(M,union,T,F,P) ->
+    A = [ O || {_,_,J,_} = O <- T, J /= nil ],
     {Atoms,Rest} = lists:partition(fun ({atom,_,_}) -> true; (_) -> false end, A),
     svar({enum,{M,F}}, [ X || {_,_,X} <- Atoms ]),
     svar(enums,        [{M,F}] ++ var(enums)),
@@ -121,17 +121,16 @@ infer(M,union,A,F,P) ->
                           _ -> simple(M,A,{F,A,P})  end;
 
 infer(Message,Type,Args,Field,Pos)  ->
-    lists:concat([keyword(Message,Type,Args,{Field,Args})," ",Field,
-                  " = ",lists:concat([Pos]),";\n"]).
+    lists:concat([keyword(Message,Type,Args)," ",Field," = ",lists:concat([Pos]),";\n"]).
 
-foldr(_,[],{_,_,_},_)                          -> [];
-foldr(M,[{type,_,nil,_}|R],{F,A,P},X)          ->                                        foldr(M,R,{A,F,P},X);
-foldr(M,[{type,_,_,[{atom,_,N}]}|R],{F,A,P},X) -> [{infer(M,N, A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1);
-foldr(M,[{type,_,T,_A}|R],{F,A,P},X)           -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}] ++ foldr(M,R,{F,A,P},X+1);
-foldr(M,[{type,_,T,_A}],{F,_,P},X)             -> [{infer(M,T,_A,j([F,P,X]),m(P,X))}].
+foldr(M,[],{F,A,P},X)                          -> [];
+foldr(M,[{type,_,nil,_}|R],{F,A,P},X)          -> foldr(M,R,{A,F,P},X);
+foldr(M,[{type,_,record,[{atom,_,N}]}|R],{F,A,P},X) -> [{infer(M,N, A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1);
+foldr(M,[{type,_,T,_A}],{F,A,P},X)             -> [{infer(M,T,_A,j([F,P,X]),j([P,X]))}];
+foldr(M,[{type,_,T,_A}|R],{F,A,P},X)           -> [{infer(M,T,_A,j([F,P,X]),j([P,X]))}] ++ foldr(M,R,{F,A,P},X+1).
 
 simple(M,T,{F,A,P}) ->
-    Fold = foldr(M,[O || {_,_,J,_}=O <- T, J /= nil],{F,A,P},0),
+    Fold = foldr(M,T,{F,A,P},0),
     case length(Fold) of
          1 -> [{J}] = Fold, J;
          _ -> bert:info(?MODULE,"FOLD ~p: ~p~n",[M,Fold]),

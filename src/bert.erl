@@ -1,7 +1,7 @@
 -module(bert).
 -include("io.hrl").
 -compile(export_all).
--export([start/2, init/1, stop/1]).
+-export([start/2, init/1, stop/1, info/3]).
 
 init([])       -> {ok, {{one_for_one, 5, 10}, [] }}.
 start(_, _)    -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).

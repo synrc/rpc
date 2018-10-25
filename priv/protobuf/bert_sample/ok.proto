@@ -10,5 +10,5 @@ option java_package = "ok.grpc";
 option java_outer_classname = "okCls";
 
 message ok {
-    string ok_id10 = 10;
+    string ok_id = 1;
 }

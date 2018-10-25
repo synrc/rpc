@@ -1,7 +1,6 @@
 -module(bert_swift).
 -export([parse_transform/2]).
--compile(export_all).
--include("io.hrl").
+-include("bert.hrl").
 
 parse_transform(Forms, _Options) -> switch(directives(Forms)), Forms.
 directives(Forms) -> lists:flatten([ form(F) || F <- Forms ]).

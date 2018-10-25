@@ -4,13 +4,13 @@
 syntax = "proto3";
 package bert_roster;
 
+import "google/protobuf/Any.proto";
 option java_generic_services = true;
 option java_multiple_files = true;
 option java_package = "Room.grpc";
 option java_outer_classname = "RoomCls";
 import public "Member.proto";
 import public "Feature.proto";
-import public "Link.proto";
 import public "Message.proto";
 import public "roomType.proto";
 import public "Desc.proto";
@@ -19,7 +19,7 @@ import public "roomStatus.proto";
 message Room {
     string id = 1;
     string name = 2;
-    repeated Link links = 3;
+    repeated google.protobuf.Any links = 3;
     string description = 4;
     repeated Feature settings = 5;
     repeated Member members = 6;
@@ -31,7 +31,7 @@ message Room {
     int64 unread = 12;
     repeated int64 mentions = 13;
     repeated int64 readers = 14;
-    Message last_msg150 = 150;
+    Message last_msg = 15;
     int64 update = 16;
     int64 created = 17;
     roomStatus status = 18;
