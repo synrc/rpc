@@ -1,0 +1,29 @@
+syntax = "proto3";
+package bert_message;
+
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "MessageService.grpc";
+option java_outer_classname = "MessageServiceCls";
+import public "Message.proto";
+import public "History.proto";
+
+service MessageService {
+    rpc sendMessage(Message) returns (Message);
+    rpc delete(Message) returns (Message);
+    rpc deleteForAll(Message) returns (Message);
+    rpc replyMessage(Message) returns (Message);
+    rpc editMessage(Message) returns (Message);
+    rpc updateMessage(Message) returns (Message);
+    rpc translateMessage(Message) returns (Message);
+    rpc trancribeMessage(Message) returns (Message);
+    rpc getMessage(History) rerurns (History);
+    rpc getMessagesToEndFromMessageId(History) rerurns (History);
+    rpc getAllMessages(History) rerurns (History);
+    rpc readMessage(History) rerurns (History);
+    rpc clearMessageHistory(History) rerurns (History);
+    rpc getMessageByType(History) rerurns (History);
+    rpc getMessageByTypeWithPagination(History) rerurns (History);
+    rpc getRepliedMessages(History) rerurns (History);
+    rpc getMessagesBetweenIds(History) rerurns (History);
+}

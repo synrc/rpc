@@ -9,13 +9,12 @@ import public "Auth.proto";
 
 service AuthenticationService {
     rpc login(Auth) returns (Auth);
-    rpc resend(Auth) returns (Auth);
+    rpc resendSMS(Auth) returns (Auth);
     rpc call(Auth) returns (Auth);
     rpc confirm(Auth) returns (Auth);
-    rpc update_push_token(Auth) returns (Auth);
-    rpc get_sessions(Auth) returns (Auth);
-    rpc delete_session(Auth) returns (Auth);
-    rpc delete_all_session(Auth) returns (Auth);
-    rpc update_token(Auth) returns (Auth);
+    rpc updatePushTokenAuth) returns (Auth);
+    rpc getSessions(Auth) returns (Auth);
+    rpc deleteSession(Auth) returns (Auth);
+    rpc deleteAllSessions(Auth) returns (Auth);
 }
 

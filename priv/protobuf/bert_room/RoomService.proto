@@ -1,0 +1,23 @@
+syntax = "proto3";
+package bert_room;
+
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "RoomService.grpc";
+option java_outer_classname = "RoomServiceCls";
+import public "Room.proto";
+import public "Member.proto";
+
+service RoomService {
+    rpc createRoom(Room) returns (Room);
+    rpc leaveRoom(Room) returns (Room);
+    rpc kickFromRoom(Room) returns (Room);
+    rpc updatemRoom(Room) returns (Room);
+    rpc addUserToRoom(Room) returns (Room);
+    rpc changeUserRoleInRoom(Room) returns (Room);
+    rpc getRoomMembers(Room) returns (Room);
+    rpc clearRoomHistory(Room) returns (Room);
+    rpc muteRoom(Member) returns (Member);
+    rpc unmuteRoom(Member) returns (Member);
+    rpc updateMemberDetails(Member) returns (Member);
+}
