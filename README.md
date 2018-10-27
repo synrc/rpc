@@ -216,9 +216,7 @@ Run
 ---
 
 ```
-$ mad dep com
-==> dependency: "git://github.com/synrc/nitro" tag: {tag,"3.10"}
-==> "nitro"
+$ mad com
 ==> "/Users/maxim/depot/synrc/bert"
 Generated Protobuf Model: "priv/protobuf/authType.proto"
 Generated Protobuf Model: "priv/protobuf/authStatus.proto"
