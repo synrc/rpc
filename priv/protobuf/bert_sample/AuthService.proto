@@ -1,0 +1,19 @@
+syntax = "proto3";
+package bert_sample;
+
+import "Auth.proto";
+option java_generic_services = true;
+option java_multiple_files = true;
+option java_package = "AuthService.grpc";
+option java_outer_classname = "AuthServiceCls";
+
+service AuthService {
+    rpc login (Auth) returns (Auth);
+    rpc resendSMS (Auth) returns (Auth);
+    rpc call (Auth) returns (Auth);
+    rpc confirm (Auth) returns (Auth);
+    rpc updatePushToken (Auth) returns (Auth);
+    rpc getSessions (Auth) returns (Auth);
+    rpc deleteSession (Auth) returns (Auth);
+    rpc deleteAllSessions (Auth) returns (Auth);
+}

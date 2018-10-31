@@ -1,5 +1,5 @@
 {application, bert,
-   [{description, "BERT: Type Driven Generator"},
+   [{description, "BERT Type Driven Generator"},
     {vsn, "1.11"},
     {registered, []},
     {applications, [kernel,stdlib]},
