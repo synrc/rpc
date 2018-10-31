@@ -63,6 +63,14 @@
                          mentioned = [] :: list(integer()),
                          msg_status    = [] :: messageStatus()}).
 
+-define(CUR,  id =  [] :: term(),
+              top=  [] :: [] | integer(),
+              bot=  [] :: [] | integer(),
+              dir=   0 ::  0 | 1,
+              reader=  [] :: [] | tuple(),
+              writer=  [] :: [] | tuple()).
+-record(cur,  {?CUR, left=0, right=0, args=[]::list(tuple()|integer()), money=0, status=[]}).
+
 -record('Auth',         {client_id   = [] :: [] | binary(),
                          dev_key     = [] :: [] | binary(),
                          user_id     = [] :: [] | binary(),

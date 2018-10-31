@@ -59,7 +59,7 @@ class(Msg,T) ->
              {_,_,{atom,_,F},   {call,_,_,_}}  -> {F,binary,[],[]};
              {_,_,{atom,_,F},   {nil,_}}       -> {F,binary,[],[]};
              {_,_,{atom,_,F}}                  -> {F,atom,  [],[]};
-             {_,_,{atom,_,F},   {T,_,V}}       -> {F,T,V,[]}
+             {_,_,{atom,_,F},   {S,_,V}}       -> {F,S,V,[]}
           end,
           bert:info(?MODULE,"DEBUG: ~p~n",[{Field,Type,Args}]),
           tab(1) ++ infer(Msg,Type,Args,atom_to_list(Field),lists:concat([Pos]))
