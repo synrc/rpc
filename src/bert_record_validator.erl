@@ -38,13 +38,13 @@ form(_Form) -> [].
 validate(List, T) ->
   Class = lists:concat([List]),
   Fields = [case Data of
-              {_, {_, _, {atom, _, Field}, _Value}, {type, _, Name, Args}} -> {lists:concat([Field]), {Name, Args}};
-              {_, {_, _, {atom, _, Field}}, {type, _, Name, Args}} -> {lists:concat([Field]), {Name, Args}};
-              _ -> []
+              {_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}} -> {lists:concat([Field]),{Name,Args}};
+              {_,{_,_,{atom,_,Field}},{type,_,Name,Args}}        -> {lists:concat([Field]),{Name,Args}};
+              {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
+              _                                                  -> []
             end || Data <- T],
   fileW(Class),
-  io:format("Class:~p\n",[Class]),
-  fileW(Fields),
+  fileW(T),
   case valid(Fields,[]) of
     {[_ | _] = Model, [_ | _] = When, [_ | _] = Validation} ->
       V = "\nvalidate([" ++ string:join([Item || Item <- Validation, Item /= []], ",") ++ "])",
@@ -56,7 +56,7 @@ validate(List, T) ->
       "\nvalidate(#'" ++ Class ++ "'{" ++ Model ++ "})" ++ " -> ok;";
     {[_ | _] = Model, [_ | _] = When, []} ->
       "\nvalidate(#'" ++ Class ++ "'{" ++ Model ++ "})" ++ " \n\twhen (" ++ When ++ ") -> ok;";
-    _ -> []
+    _ -> ""
   end.
 
 valid([], Acc) ->
@@ -87,14 +87,14 @@ get_type({union,R},Name) when is_list(R)                  -> split(R,Name,{[],[]
 get_type({tuple,_},Name)                                  -> {"is_tuple("++Name++")",[]};
 get_type(atom,Name)                                       -> {"is_atom("++Name++")",[]};
 get_type(integer,Name)                                    -> {"is_integer("++Name++")",[]};
-get_type(_,_)                                             -> {[],[]}.
+get_type(Type,Name)                                       -> get_records(Type,Name).
 
 split([],Name,Acc) ->
   case Acc of
     {[],[]} -> {[],[]};
     {C, []} -> {[],"(" ++ string:join(["is_record("++Name++",'"++lists:concat([Item])++"')"||Item<-C,Item/=[]]," orelse ")++")"};
     {[], T} -> {"(" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
-    {C,  T} -> {"(" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
+    {_,  T} -> {"(" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
   end;
 split([Head | Tail], Name, Acc) ->
   Classes = element(1,Acc),
