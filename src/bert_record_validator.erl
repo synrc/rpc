@@ -66,7 +66,7 @@ valid([Field | Rest], Acc) ->
     {Name, Type} ->
       case Res = get_data(Type, Name) of
         [] -> valid(Rest, Acc);
-        _ -> valid(Rest, [Res | Acc])
+        _ -> valid(Rest, Acc ++ [Res])
       end;
     _ -> []
   end.
@@ -74,7 +74,7 @@ valid([Field | Rest], Acc) ->
 get_data({atom, _}, Name)   -> {get_fields(Name, atom), get_type(atom, to_upper(Name))};
 get_data({binary, _}, Name) -> {get_fields(Name, binary), get_type(binary, to_upper(Name))};
 get_data(Type, Name)        -> {get_fields(Name, Type), get_type(Type, to_upper(Name))}.
-
+%%{union,[{type,142,nil,[]},{type,142,list,[{type,142,integer,[]}]}]}
 get_type({integer, []},Name)                              -> {"is_integer("++Name++")",[]};
 get_type({list,[{type,_,record,[{atom,_,_}]}]},Name)      -> {"is_list("++Name++")",Name};
 get_type({list,[{type,_,union, R}]},Name) when is_list(R) -> {"is_list("++Name++")",Name};%split(R,Name,{[],[]});
@@ -108,6 +108,7 @@ get_records({type,_,binary,_},Name)             -> {[],"is_binary("++Name++")"};
 get_records({type,_,integer,_},Name)            -> {[],"is_integer("++Name++")"};
 get_records({type,_,nil,_},Name)                -> {[],Name++"==[]"};
 get_records({type,_,tuple,_},Name)              -> {[],"is_tuple("++Name++")"};
+get_records({type,_,list,_},Name)               -> {[],"is_list("++Name++")"};
 get_records({type,_,atom,_},Name)               -> {[],"is_atom("++Name++")"};
 get_records({atom,_,V},Name)                    -> {[],Name++"=='" ++ atom_to_list(V)++"'"};
 get_records(_,_)                                -> {[],[]}.
