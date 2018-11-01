@@ -10,6 +10,7 @@
 -author("bo").
 
 %% API
+%%-export([parse_transform/2]).
 -export([parse_transform/2]).
 -compile(export_all).
 -include("io.hrl").
@@ -42,6 +43,7 @@ validate(List, T) ->
               _ -> []
             end || Data <- T],
   fileW(Class),
+  io:format("Class:~p\n",[Class]),
   fileW(Fields),
   case valid(Fields,[]) of
     {[_ | _] = Model, [_ | _] = When, [_ | _] = Validation} ->
@@ -74,7 +76,7 @@ valid([Field | Rest], Acc) ->
 get_data({atom, _}, Name)   -> {get_fields(Name, atom), get_type(atom, to_upper(Name))};
 get_data({binary, _}, Name) -> {get_fields(Name, binary), get_type(binary, to_upper(Name))};
 get_data(Type, Name)        -> {get_fields(Name, Type), get_type(Type, to_upper(Name))}.
-%%{union,[{type,142,nil,[]},{type,142,list,[{type,142,integer,[]}]}]}
+
 get_type({integer, []},Name)                              -> {"is_integer("++Name++")",[]};
 get_type({list,[{type,_,record,[{atom,_,_}]}]},Name)      -> {"is_list("++Name++")",Name};
 get_type({list,[{type,_,union, R}]},Name) when is_list(R) -> {"is_list("++Name++")",Name};%split(R,Name,{[],[]});
@@ -92,7 +94,7 @@ split([],Name,Acc) ->
     {[],[]} -> {[],[]};
     {C, []} -> {[],"(" ++ string:join(["is_record("++Name++",'"++lists:concat([Item])++"')"||Item<-C,Item/=[]]," orelse ")++")"};
     {[], T} -> {"(" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
-    {C,  _} -> {"(" ++ string:join(["is_record("++Name++",'"++lists:concat([Item])++"')"||Item<-C,Item/=[]]," orelse ")++")",Name}
+    {C,  T} -> {"(" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
   end;
 split([Head | Tail], Name, Acc) ->
   Classes = element(1,Acc),
@@ -103,7 +105,7 @@ split([Head | Tail], Name, Acc) ->
     {[],   Type} -> split(Tail,Name,{Classes,[Type|Types]});
     {Class,Type} -> split(Tail,Name,{[Class|Classes],[Type|Types]})end.
 
-get_records({type,_,record,[{_,_,Class}]},Name) -> {atom_to_list(Class),["is_record("++Name++","++atom_to_list(Class)++")"]};
+get_records({type,_,record,[{_,_,Class}]},Name) -> {atom_to_list(Class),"is_record("++Name++",'"++atom_to_list(Class)++"')"};
 get_records({type,_,binary,_},Name)             -> {[],"is_binary("++Name++")"};
 get_records({type,_,integer,_},Name)            -> {[],"is_integer("++Name++")"};
 get_records({type,_,nil,_},Name)                -> {[],Name++"==[]"};
