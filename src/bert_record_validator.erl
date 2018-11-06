@@ -133,5 +133,10 @@ validate([]) -> ok;
 validate([H|T]) -> case validate(H) of ok -> validate(T); _ -> error end;\n"]).
 
 finish() ->
-  "\nvalidate(_) -> error.".
+  "\n
+validate(D) when is_binary(D)-> ok;
+validate(D) when is_atom(D)-> ok;
+validate(D) when is_pid(D)-> ok;
+validate(D) when is_integer(D)-> ok;
+validate(_) -> error.".
 
