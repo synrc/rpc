@@ -13,7 +13,7 @@
 %%-export([parse_transform/2]).
 -export([parse_transform/2]).
 -compile(export_all).
--include("io.hrl").
+%-include("io.hrl").
 -define(FILE_NAME, "test").
 -define(JS,     (application:get_env(bert,js,    "priv/macbert/"))).
 -define(Valid_Start,     "ErrFields = lists:flatten(
@@ -67,7 +67,7 @@ validate(List, T) ->
   fileW(T),
   case valid(Fields,Class,[]) of
     {[_ | _] = Model, [_ | _] = When, [_ | _] = Validation} ->
-      F = lists:flatten([case Item of {_,C} -> []; F -> F end || Item <- Validation, Item /= []]),
+%      _F = lists:flatten([case Item of {_,_C} -> []; _F -> _F end || Item <- Validation, Item /= []]),
       D = lists:flatten([Item || Item <- Validation, is_tuple(Item)]),
       V0 = "\n\tCondFuns = ["   ++ string:join(["?COND_FUN(is_record(Rec, '"++ atom_to_list(C) ++ "'))" || {_,C} <- D], ",") ++ "],",
       V = "\n\tFields = ["      ++ string:join([case F of {I,_} -> I; I -> I end || F <- D, F /= []], ",") ++ "],",
