@@ -44,7 +44,7 @@ form({attribute,_, record, {List, T}}) -> [validate(List, T)];
 form({attribute,_, module, Name}) -> put({module},Name), [];
 form({attribute,_, file, {HRL,_}}) ->
    case filename:extension(HRL) of
-        ".hrl"=X -> put({imports}, [filename:basename(HRL)]
+        ".hrl"=X -> put({imports}, [HRL]
             ++ case get({imports}) of undefined -> []; Y -> Y end),
             [];
         _ -> [] end;
