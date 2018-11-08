@@ -1,21 +1,9 @@
-%%%-------------------------------------------------------------------
-%%% @author bo
-%%% @copyright (C) 2018, <COMPANY>
-%%% @doc
-%%%
-%%% @end
-%%% Created : 31. Aug 2018 17:09
-%%%-------------------------------------------------------------------
--module(bert_record_validator).
--author("bo").
-
-%% API
-%%-export([parse_transform/2]).
+-module(bert_validator).
+-include("bert.hrl").
+-author('Dmytro Boiko').
 -export([parse_transform/2]).
 -compile(export_all).
-%-include("io.hrl").
--define(FILE_NAME, "test").
--define(JS,     (application:get_env(bert,js,    "priv/macbert/"))).
+
 -define(Valid_Start,     "ErrFields = lists:flatten(
 		  [case {Field, F} of\n\t").
 -define(Valid_End(Name),"\n\t_ -> Field
@@ -46,13 +34,23 @@ fileW(Data) ->
 
 parse_transform(Forms, _Options) ->
   file:delete("temp.txt"),
-  File = filename:join([?JS, lists:concat([?FILE_NAME, ".erl"])]),
+  {Bin,Module} = directives(Forms),
+  File = filename:join([?ERL, lists:concat([Module,".erl"])]),
   io:format("Generated Models Validator: ~p~n", [File]),
-  file:write_file(File, directives(Forms)), Forms.
+  file:write_file(File, Bin),
+  Forms.
 
-directives(Forms) -> R = lists:flatten([form(F) || F <- Forms]), iolist_to_binary([prelude(),lists:sublist(R,1, length(R) - 1) ++ "."]).
+directives(Forms) -> R = lists:flatten([form(F) || F <- Forms]),
+   { iolist_to_binary([prelude(),lists:sublist(R,1, length(R) - 1) ++ "."]), lists:concat([get({module}),"_validator"]) }.
 
-form({attribute, _, record, {List, T}}) -> [validate(List, T)];
+form({attribute,_, record, {List, T}}) -> [validate(List, T)];
+form({attribute,_, module, Name}) -> put({module},Name), [];
+form({attribute,_, file, {HRL,_}}) ->
+   case filename:extension(HRL) of
+        ".hrl"=X -> put({imports}, [filename:basename(HRL)]
+            ++ case get({imports}) of undefined -> []; Y -> Y end),
+            [];
+        _ -> [] end;
 form(_Form) -> [].
 
 validate(List, T) ->
@@ -149,12 +147,10 @@ get_fields(Name, Type) ->
   lists:concat([Name, " = ", Res]).
 
 prelude() ->
+  S = lists:flatten([io_lib:format("-include(\"~s\").~n",[X])||X<-get({imports})]),
   lists:concat([
-    "-module(", ?FILE_NAME, ").
--author(\"bo\").
-
--compile(export_all).
--include(\"io.hrl\").
+    "-module(", get({module}), "_validator).
+"++S++"-compile(export_all).
 -define(COND_FUN(Cond), fun(Rec) when Cond -> true; (_) -> false end).
 
 validate(Obj) -> validate(Obj, []).
