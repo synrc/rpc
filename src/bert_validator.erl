@@ -139,7 +139,7 @@ get_fields(Name, Type) ->
   lists:concat([Name, " = ", Res]).
 
 prelude() ->
-  S = lists:flatten([io_lib:format("-include(\"~s\").~n",[X])||X<-get({imports})]),
+  S = lists:flatten([io_lib:format("-include(\"~s\").~n",[X])||X<-lists:usort(get({imports}))]),
   lists:concat([
     "-module(", get({module}), "_validator).
 "++S++"-compile(export_all).
