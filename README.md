@@ -3,12 +3,13 @@ BERT: Type Driven Parser Generator
 
 [![Build Status](https://travis-ci.org/synrc/bert.svg?branch=master)](https://travis-ci.org/synrc/bert)
 
-Supported Formatters
+Supported Generators
 --------------------
 
+* Erlang validation according to Type Spec (BERT)
 * JavaScript (BERT)
 * Swift (BERT)
-* Google (PROTOBUF)
+* Google Protobuf Specification (PROTOBUF)
 
 Intro
 -----
