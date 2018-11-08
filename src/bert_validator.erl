@@ -29,9 +29,6 @@ to_lower(Name) ->
   [Hd | Tail] = Name,
   [string:to_lower(Hd)] ++ Tail.
 
-fileW(Data) ->
-  file:write_file("temp.txt", io_lib:fwrite("~p.\n", [Data]), [append]).
-
 parse_transform(Forms, _Options) ->
   file:delete("temp.txt"),
   {Bin,Module} = directives(Forms),
@@ -61,11 +58,8 @@ validate(List, T) ->
               {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
               _                                                  -> []
             end || Data <- T],
-  fileW(Class),
-  fileW(T),
   case valid(Fields,Class,[]) of
     {[_ | _] = Model, [_ | _] = When, [_ | _] = Validation} ->
-%      _F = lists:flatten([case Item of {_,_C} -> []; _F -> _F end || Item <- Validation, Item /= []]),
       D = lists:flatten([Item || Item <- Validation, is_tuple(Item)]),
       V0 = "\n\tCondFuns = ["   ++ string:join(["?COND_FUN(is_record(Rec, '"++ atom_to_list(C) ++ "'))" || {_,C} <- D], ",") ++ "],",
       V = "\n\tFields = ["      ++ string:join([case F of {I,_} -> I; I -> I end || F <- D, F /= []], ",") ++ "],",
@@ -95,8 +89,6 @@ valid([Field | Rest], Class, Acc) ->
     _ -> []
   end.
 
-%%get_data({atom, _}, Name)   -> {get_fields(Name, atom), get_type(atom, to_upper(Name))};
-%%get_data({binary, _}, Name) -> {get_fields(Name, binary), get_type(binary, to_upper(Name))};
 get_data(Type,Class, Name)        -> {get_fields(Name, Type), get_type(Type, to_upper(Name), Class)}.
 
 get_type({integer,_},Name,_)                                -> {"{" ++to_lower(Name) ++ ",_} when is_integer("++Name++")",[]};
