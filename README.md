@@ -56,7 +56,8 @@ Erlang HRL
 
 ```erlang
 -record(io, { code=[] :: [] | #ok{} | #error{},
-              data=[] :: [] | <<>> | { atom(), binary() | integer() } }).
+              data=[] :: [] | <<>> 
+                | { atom(), binary() | integer() } }).
 ```
 
 Swift Model
@@ -119,10 +120,14 @@ function check() {
     ];
     testData.forEach(function (o) {
         var o = JSON.stringify(o);
-        var d = JSON.stringify(decode(dec(enc(encode(o)).buffer))).replace(/\\/g, '');
+        var d = JSON.stringify(
+                decode(dec(enc(encode(o)).buffer)))
+                 .replace(/\\/g, '');
 
-        if (JSON.stringify(o) != JSON.stringify(decode(dec(enc(encode(o)).buffer)))) {
-            console.log("Original: " + o + " <=> Decode: " + d + " %c [Error]", "color: red");
+        if (JSON.stringify(o) != JSON.stringify(
+             decode(dec(enc(encode(o)).buffer)))) {
+            console.log("Original: " + o + " <=> Decode: " 
+                + d + " %c [Error]", "color: red");
             res = false;
         } else {
             console.log("Data: " + o + " %c [OK]", "color: green");
