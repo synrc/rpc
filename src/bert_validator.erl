@@ -5,9 +5,9 @@
 -compile(export_all).
 
 -define(Valid_Start,     "ErrFields = lists:flatten(
-		  [case {Field, F} of\n\t").
--define(Valid_End(Name),"\n\t_ -> Field
-    end || {Field, F} <- lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))]),").
+		  [case {RecField, F} of\n\t").
+-define(Valid_End(Name),"\n\t_ -> RecField
+    end || {RecField, F} <- lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))]),").
 -define(Valid_fun, "	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields, D}|Acc]) of
 		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields, D}|Acc]);
 		Err -> Err
@@ -150,15 +150,15 @@ validate(_, [{[_|_] , _R}|_] = Acc) -> {error, Acc};
 validate([], _) -> ok;
 validate(Objs, [{[] , R}|T]) -> validate(Objs, [R|T]);
 validate([{CondFun, _, []}|T], Acc) when is_function(CondFun) -> validate(T, Acc);
-validate([{CondFun, Field, [Obj|TObjs]}|T], Acc) when is_function(CondFun) ->
+validate([{CondFun, RecField, [Obj|TObjs]}|T], Acc) when is_function(CondFun) ->
   case CondFun(Obj) of
-    true -> validate([{CondFun, Field, TObjs}|T], Acc);
-    false -> {error, [Field, Obj|Acc]} end;
-validate([{CondFun, Field, Obj}|T], Acc) when is_function(CondFun) ->
-  case CondFun(Obj) of true -> validate(T, Acc); false -> {error, [Field, Obj|Acc]} end;
+    true -> validate([{CondFun, RecField, TObjs}|T], Acc);
+    false -> {error, [RecField, Obj|Acc]} end;
+validate([{CondFun, RecField, Obj}|T], Acc) when is_function(CondFun) ->
+  case CondFun(Obj) of true -> validate(T, Acc); false -> {error, [RecField, Obj|Acc]} end;
 validate([{_Field, []}|T], Acc) -> validate(T, Acc);
-validate([{Field, [Obj|TObjs]}|T], Acc) ->
-  case validate(Obj, [Field|Acc]) of
-    ok -> validate([{Field, TObjs}|T], Acc);
+validate([{RecField, [Obj|TObjs]}|T], Acc) ->
+  case validate(Obj, [RecField|Acc]) of
+    ok -> validate([{RecField, TObjs}|T], Acc);
     Err -> Err end;\n"]).
 
