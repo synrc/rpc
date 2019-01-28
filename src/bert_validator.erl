@@ -21,13 +21,10 @@
 		Err -> Err
 	end;").
 
-to_upper(Name) ->
-  [Hd | Tail] = Name,
-  [string:to_upper(Hd)] ++ Tail.
 
-to_lower(Name) ->
-  [Hd | Tail] = Name,
-  [string:to_lower(Hd)] ++ Tail.
+capitalize(Fun, [H|T]) -> [string:Fun(H)|T].
+u(Name) -> capitalize(to_upper, Name).
+l(Name) -> capitalize(to_lower, Name).
 
 parse_transform(Forms, _Options) ->
   file:delete("temp.txt"),
@@ -63,7 +60,7 @@ validate(List, T) ->
       D = lists:flatten([Item || Item <- Validation, is_tuple(Item)]),
       V0 = "\n\tCondFuns = ["   ++ string:join(["?COND_FUN(is_record(Rec, '"++ atom_to_list(C) ++ "'))" || {_,C} <- D], ",") ++ "],",
       V = "\n\tFields = ["      ++ string:join([case F of {I,_} -> I; I -> I end || F <- D, F /= []], ",") ++ "],",
-      V1 = "\n\tFieldNames = [" ++ string:join([case F of {I,_} -> to_lower(I); I -> to_lower(I) end || F <- D, F /= []], ",") ++ "],",
+      V1 = "\n\tFieldNames = [" ++ string:join([case F of {I,_} -> l(I); I -> l(I) end || F <- D, F /= []], ",") ++ "],",
       "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_End(Class) ++ V0 ++ V ++ V1 ++ ?Valid_fun;
     {[_ | _] = Model, [], [_ | _] = Validation} ->
       V = "\nvalidate([" ++ string:join([Item || Item <- Validation, Item /= []], ",") ++ "])",
@@ -89,28 +86,29 @@ valid([Field | Rest], Class, Acc) ->
     _ -> []
   end.
 
-get_data(Type,Class, Name)        -> {get_fields(Name, Type), get_type(Type, to_upper(Name), Class)}.
+get_data(Type,Class, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
 
-get_type({integer,_},Name,_)                                -> {"{" ++to_lower(Name) ++ ",_} when is_integer("++Name++")",[]};
-get_type({list,[{type,_,record,[{atom,_,C}]}]},Name,_)      -> {"{" ++to_lower(Name) ++ ",_} when is_list("++Name++")",{Name,C}};
-get_type({list,[{type,_,union, R}]},Name,_) when is_list(R) -> {"{" ++to_lower(Name) ++ ",_} when is_list("++Name++")",Name};%split(R,Name,{[],[]});
-get_type({list,_},Name,_)                                   -> {"{" ++to_lower(Name) ++ ",_} when is_list("++Name++")",[]};
-get_type({record,[{atom,_,_}]},Name,Class)                  -> {"{" ++to_lower(Name) ++ ",_} when is_record("++Name++",'"++Class++"')",[]};
-get_type({term,[]},Name,_)                                  -> {"{"++to_lower(Name)++",_}",[]};
+get_type({integer,_},Name,_)                                -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++")",[]};
+get_type({list,[{type,_,record,[{atom,_,C}]}]},Name,_)      -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++")",{Name,C}};
+get_type({list,[{type,_,union, R}]},Name,_) when is_list(R) -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++")",Name};%split(R,Name,{[],[]});
+get_type({list,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++")",[]};
+get_type({record,[{atom,_,Atom}]},Name,_Class)              -> {"{" ++ l(Name) ++ ", #'"++atom_to_list(Atom)++"'{}}",[]};
+get_type({term,[]},Name,_)                                  -> {"{" ++ l(Name)++",_}",[]};
 get_type({union,R},Name,Class) when is_list(R)              -> split(R,Name,Class,{[],[]});
-get_type({tuple,_},Name,_)                                  -> {"{" ++to_lower(Name) ++ ",_} when is_tuple("++Name++")",[]};
-get_type({atom,_},Name,_)                                   -> {"{" ++to_lower(Name) ++ ",_} when is_atom("++Name++")",[]};
-get_type({binary,_},Name,_)                                 -> {"{" ++to_lower(Name) ++ ",_} when is_binary("++Name++")",[]};
-get_type(atom,Name,_)                                       -> {"{" ++to_lower(Name) ++ ",_} when is_atom("++Name++")",[]};
-get_type(integer,Name,_)                                    -> {"{" ++to_lower(Name) ++ ",_} when is_integer("++Name++")",[]};
+get_type({tuple,_},Name,_)                                  -> {"{" ++ l(Name) ++ ",_} when is_tuple("++Name++")",[]};
+get_type({atom,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++")",[]};
+get_type({binary,_},Name,_)                                 -> {"{" ++ l(Name) ++ ",_} when is_binary("++Name++")",[]};
+get_type(atom,Name,_)                                       -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++")",[]};
+get_type({atom, _, Default},Name,_)                         -> {"{" ++ l(Name) ++ ","++atom_to_list(Default)++"}",[]};
+get_type(integer,Name,_)                                    -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++")",[]};
 get_type(Type,Name,_)                                       -> get_records(Type,Name).
 
 split([],Name,_,Acc) ->
   case Acc of
     {[],[]} -> {[],[]};
     {C, []} -> {[],"(" ++ string:join(["is_record("++Name++",'"++lists:concat([Item])++"')"||Item<-C,Item/=[]]," orelse ")++")"};
-    {[], T} -> {"{"++to_lower(Name) ++ ",_} when (" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
-    {_,  T} -> {"{"++to_lower(Name) ++ ",_} when (" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
+    {[], T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
+    {_,  T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
   end;
 split([Head | Tail], Name,C, Acc) ->
   Classes = element(1,Acc),
@@ -134,7 +132,7 @@ get_records(_,_)                                -> {[],[]}.
 get_fields(Name, Type) ->
   Res = case Type of
           binary -> "<<_/binary>>";
-          _ -> to_upper(Name)
+          _ -> u(Name)
         end,
   lists:concat([Name, " = ", Res]).
 
