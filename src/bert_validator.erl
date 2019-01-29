@@ -37,13 +37,26 @@ parse_transform(Forms, _Options) ->
 directives(Forms) -> R = lists:flatten([form(F) || F <- Forms]),
    { iolist_to_binary([prelude(),lists:sublist(R,1, length(R) - 1) ++ "."]), lists:concat([get({module}),"_validator"]) }.
 
+relative_path(Pathfile, KeyWord) -> relative_path(Pathfile, KeyWord, []).
+relative_path([], _KeyWord, {Acc, 1}) -> Acc;
+relative_path([], _KeyWord, _Acc) -> [];
+relative_path([H|_], _KeyWord, {Acc, 2}) when is_list(H) -> Acc;
+relative_path([H|Components], KeyWord, {Acc, DeepCount}) when is_list(H) ->
+    relative_path(Components, KeyWord, {filename:join(H, Acc),
+        DeepCount + case {DeepCount, H} of {0, KeyWord} -> 1; {1, _} -> 1; {0, _} -> 0 end});
+relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
+%%    Components = lists:reverse(filename:split(filename:safe_relative_path(Pathfile))),
+    Components = lists:reverse(filename:split(Pathfile)),
+    relative_path(Components, KeyWord, {Acc, 0}).
+
 form({attribute,_, record, {List, T}}) -> [validate(List, T)];
 form({attribute,_, module, Name}) -> put({module},Name), [];
 form({attribute,_, file, {HRL,_}}) ->
    case filename:extension(HRL) of
-        ".hrl"=X -> put({imports}, [HRL]
-            ++ case get({imports}) of undefined -> []; Y -> Y end),
-            [];
+        ".hrl" ->
+            case relative_path(HRL, "include") of [] -> [];
+                RelPath -> put(imports, [RelPath | case get(imports) of undefined -> []; Y -> Y end]), []
+            end;
         _ -> [] end;
 form(_Form) -> [].
 
@@ -137,7 +150,7 @@ get_fields(Name, Type) ->
   lists:concat([Name, " = ", Res]).
 
 prelude() ->
-  S = lists:flatten([io_lib:format("-include(\"~s\").~n",[X])||X<-lists:usort(get({imports}))]),
+  S = lists:flatten([io_lib:format("-include_lib(\"~s\").~n",[X])||X<-lists:usort(get(imports))]),
   lists:concat([
     "-module(", get({module}), "_validator).
 "++S++"-compile(export_all).
