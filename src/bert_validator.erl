@@ -34,8 +34,11 @@ parse_transform(Forms, _Options) ->
   file:write_file(File, Bin),
   Forms.
 
-directives(Forms) -> R = lists:flatten([form(F) || F <- Forms]),
-   { iolist_to_binary([prelude(),lists:sublist(R,1, length(R) - 1) ++ "."]), lists:concat([get({module}),"_validator"]) }.
+directives(Forms) ->
+    {Validators, Module, Imports} = form(Forms),
+    {iolist_to_binary([prelude(Imports, Module),
+     lists:sublist(Validators, length(Validators)-1) ++ "."]),
+     lists:concat([Module,"_validator"])}.
 
 relative_path(Pathfile, KeyWord) -> relative_path(Pathfile, KeyWord, []).
 relative_path([], _KeyWord, {Acc, 1}) -> Acc;
@@ -49,16 +52,22 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
     Components = lists:reverse(filename:split(Pathfile)),
     relative_path(Components, KeyWord, {Acc, 0}).
 
-form({attribute,_, record, {List, T}}) -> [validate(List, T)];
-form({attribute,_, module, Name}) -> put({module},Name), [];
-form({attribute,_, file, {HRL,_}}) ->
-   case filename:extension(HRL) of
-        ".hrl" ->
-            case relative_path(HRL, "include") of [] -> [];
-                RelPath -> put(imports, [RelPath | case get(imports) of undefined -> []; Y -> Y end]), []
-            end;
-        _ -> [] end;
-form(_Form) -> [].
+form(Forms) -> form(Forms, {[], [], []}).
+form([{attribute,_, record, {List, T}}|TAttrs], {Validators, Module, Files}) ->
+    form(TAttrs, {Validators ++validate(List, T), Module, Files});
+form([{attribute,_, module, Name}|TAttrs], {Validators, _Module, Files}) ->
+    form(TAttrs, {Validators, Name, Files});
+form([{attribute,_, file, {HRL,_}}|TAttrs], {Validators, Module, Files}) ->
+    Imports =
+        case filename:extension(HRL) of
+            ".hrl" ->
+                case relative_path(HRL, "include") of
+                    [] -> Files;
+                    RelPath -> [RelPath | Files] end;
+            _ -> Files end,
+    form(TAttrs, {Validators, Module, Imports});
+form([_Attr|TAttrs], Acc) -> form(TAttrs, Acc);
+form([], Acc) -> Acc.
 
 validate(List, T) ->
   Class = lists:concat([List]),
@@ -149,10 +158,10 @@ get_fields(Name, Type) ->
         end,
   lists:concat([Name, " = ", Res]).
 
-prelude() ->
-  S = lists:flatten([io_lib:format("-include_lib(\"~s\").~n",[X])||X<-lists:usort(get(imports))]),
-  lists:concat([
-    "-module(", get({module}), "_validator).
+prelude(Imports, Module) ->
+    S = lists:flatten([io_lib:format("-include_lib(\"~s\").~n",[X])||X<-lists:usort(Imports)]),
+    lists:concat([
+    "-module(", Module, "_validator).
 "++S++"-compile(export_all).
 -define(COND_FUN(Cond), fun(Rec) when Cond -> true; (_) -> false end).
 
