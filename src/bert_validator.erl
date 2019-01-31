@@ -128,12 +128,11 @@ split([],Name,_,Acc) ->
     {[], T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
     {_,  T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
   end;
-split([Head | Tail], Name,C, {Classes, Types}=Acc) ->
-  case get_records(Head, Name) of
-    {[],   []}   -> split(Tail,Name,C,Acc);
-    {Class,[]}   -> split(Tail,Name,C,{[Class|Classes],Types});
-    {[],   Type} -> split(Tail,Name,C,{Classes,[Type|Types]});
-    {Class,Type} -> split(Tail,Name,C,{[Class|Classes],[Type|Types]})end.
+split([Head | Tail], Name,C, {Classes, Types}) ->
+    {Class, Type} = get_records(Head, Name),
+    split(Tail,Name,C,{head(Classes, Class),head(Types, Type)}).
+head(L, []) -> L;
+head(L, H) -> [H|L].
 
 get_records({type,_,record,[{_,_,Class}]},Name) -> {atom_to_list(Class),"is_record("++Name++",'"++atom_to_list(Class)++"')"};
 get_records({type,_,binary,_},Name)             -> {[],"is_binary("++Name++")"};
