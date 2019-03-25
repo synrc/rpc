@@ -7,17 +7,19 @@
 -define(Valid_Start,     "ErrFields = lists:flatten(
 		  [case {RecField, F} of\n\t").
 -define(Valid_End(Name),"\n\t_ -> RecField
-    end || {RecField, F} <- lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))]),").
--define(Valid_fun, "	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields, D}|Acc]) of
-		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields, D}|Acc]);
+    end || {RecField, F} <- lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))]),
+    {CustomValidateModule, ValidateFun} = application:get_env(bert, custom_validate, {?MODULE, custom_validate}),
+    ErrFields2 = ErrFields++CustomValidateModule:ValidateFun(D),").
+-define(Valid_fun, "	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields2, D}|Acc]) of
+		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields2, D}|Acc]);
 		Err -> Err
 	end;").
 -define(Valid_fun_empty,
  "\n\tCondFuns = [],
 	Fields = [],
 	FieldNames = [],
-	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields, D}|Acc]) of
-		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields, D}|Acc]);
+	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields2, D}|Acc]) of
+		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields2, D}|Acc]);
 		Err -> Err
 	end;").
 
@@ -158,6 +160,7 @@ prelude(Imports, Module) ->
 "++S++"-compile(export_all).
 -define(COND_FUN(Cond), fun(Rec) when Cond -> true; (_) -> false end).
 
+custom_validate(_Obj) -> [].
 validate(Obj) -> validate(Obj, []).
 validate(_, [{[_|_] , _R}|_] = Acc) -> {error, Acc};
 validate([], _) -> ok;
@@ -174,4 +177,3 @@ validate([{RecField, [Obj|TObjs]}|T], Acc) ->
   case validate(Obj, [RecField|Acc]) of
     ok -> validate([{RecField, TObjs}|T], Acc);
     Err -> Err end;\n"]).
-
