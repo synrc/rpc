@@ -109,13 +109,12 @@ valid([_ | _Rest], _Class, _Acc) -> [].
 get_data(Type,Class, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
 
 get_type({integer,_},Name,_)                                -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> [];",[]};
-get_type({list,[{type,_,record,[{atom,_,C}]}]},Name,_)      -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++") -> [];",{Name,C}};
-get_type({list,[{type,_,union, R}]} = L,Name,_) when is_list(R) -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),[]};%split(R,Name,{[],[]});
-get_type({list,[{type,_,union, R}]},Name,_) when is_list(R) -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++") -> [];",Name};%split(R,Name,{[],[]});
-get_type({list,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_list("++Name++") -> [];",[]};
-get_type({record,[{atom,_,Atom}]},Name,_Class)              -> {"{" ++ l(Name) ++ ", #'"++atom_to_list(Atom)++"'{}} -> [];",[]};
+get_type({list,[{type,_,record,[{atom,_,C}]}]} = L,Name,_)  -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),{Name,C}};
+get_type({list,[{type,_,union, _}]} = L,Name,_)             -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),Name};
+get_type({list,_}=L,Name,_)                                 -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),[]};
+get_type({record,[{atom,_,Atom}]} = R,Name,_Class)          -> {guard(R, Name, "{" ++ l(Name)),[]};%% TODO validate inner record
 get_type({term,[]},Name,_)                                  -> {"{" ++ l(Name)++",_} -> [];",[]};
-get_type({union,R},Name,Class) when is_list(R)              -> {guard({union, R}, Name, "{" ++ l(Name) ++ ",_} when "), []}; %%split(R,Name,Class,{[],[]});
+get_type({union,R},Name,Class) when is_list(R)              -> {guard({union, R}, Name, "{"++ l(Name)++ ",_} when "), []};
 get_type({tuple,_},Name,_)                                  -> {"{" ++ l(Name) ++ ",_} when is_tuple("++Name++") -> [];",[]};
 get_type({atom,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> [];",[]};
 get_type({binary,_},Name,_)                                 -> {"{" ++ l(Name) ++ ",_} when is_binary("++Name++") -> [];",[]};
@@ -124,25 +123,28 @@ get_type({atom, _, Default},Name,_)                         -> {"{" ++ l(Name) +
 get_type(integer,Name,_)                                    -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> [];",[]};
 get_type(Type,Name,_)                                       -> get_records(Type,Name).
 
-rem_last(T, L) -> case lists:last(L) of T -> lists:droplast(L); _-> L end.
+%%rem_last(T, L) -> case lists:last(L) of T -> lists:droplast(L); _-> L end.
 
 -define(AND(L), case L of [] -> ""; _ -> [" andalso "] end).
 -define(OR(L), case L of [] -> "";_ -> [" orelse "] end).
 -define(LB(L), case L of [] -> ""; _ -> ["("] end).
 -define(RB(L), case L of [] -> ""; _ -> [")"] end).
-%%-define(COMMA(L), case L of [] -> ""; _ -> ", " end).
-guard({list, [{type, _, union, []} = T]}, Name, Acc) -> Acc;
+
+guard({term,[]},_Name,Acc) -> Acc++",_} -> [];";
+guard({record,[{atom,_,Atom}]},_Name,Acc) -> Acc++", #'"++atom_to_list(Atom)++"'{}} -> [];";
+guard({list, [{type, _, union, []}]}, _Name, Acc) -> Acc;
 guard({list, [{type, _, union, L} = T]}, Name, Acc) when is_list(L) ->
-    Acc2 = guard(T, "Tmp", Acc ++" is_list("++Name++") -> ["++l(Name)++"|| Tmp<-"++Name++", not ("),
+    Acc2 = guard(T, "Tmp", Acc ++"is_list("++Name++") -> ["++l(Name)++"||Tmp<-"++Name++", not ("),
     case lists:last(Acc2) of " -> [];" -> lists:droplast(Acc2)++")];"; _-> lists:flatten(Acc) end;
-guard({list, [{type, I, _, _R}]= T}, Name, Acc) ->
-    guard({type,I,union, T}, Name, Acc);
+guard({list, [{type, I, N, R}]}, Name, Acc) ->
+    guard({list, [{type, I, union, [{type, I, N, R}]}]}, Name, Acc);
+guard({list, _}, Name, Acc) -> Acc++"is_list("++Name++") -> [];";
 guard({type, _, union, U}, Name, Acc) -> guard({union, U}, Name, Acc);
-guard({union, []}, Name, Acc) -> Acc++[" -> [];"];
+guard({union, []}, _Name, Acc) -> Acc++[" -> [];"];
 guard({union, [{atom, _, A}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++Name++"=='"++atom_to_list(A)++"'"++?OR(T));
 guard({union, [{type, _, nil, []}|T]}, Name, Acc) ->
-    guard({union, T}, Name, Acc++Name++"== []"++?OR(T));
+    guard({union, T}, Name, Acc++Name++"==[]"++?OR(T));
 guard({union, [{type, _, tuple, _}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++"is_tuple("++Name++")"++?OR(T));
 guard({union, [{type, _, iolist, _}|T]}, Name, Acc) ->
@@ -152,30 +154,16 @@ guard({union, [{type, _, atom, _}|T]}, Name, Acc) ->
 guard({union, [{type, _, binary, _}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++"is_binary("++Name++")"++?OR(T));
 guard({union, [{type, _, term, _}|T]}, Name, Acc) ->
-    guard({union, T}, Name, Acc++" true ");
+    guard({union, T}, Name, Acc++" true "++?OR(T));
 guard({union, [{type, _, integer, _}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++"is_integer("++Name++")"++?OR(T));
 guard({union, [{type, _, record, [{atom, _, R}]}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++"is_record("++Name++",'"++atom_to_list(R)++"')"++?OR(T));
 guard({union, [{type, _, list, T}]}, Name, Acc) ->
-%%    Acc2 = guard({union, T}, Name, Acc)++"is_list("++Name++") -> ",
     guard({list, T}, Name, Acc);
 guard({union, [{integer, _, V}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++Name++"=="++integer_to_list(V)++?OR(T)).
 
-
-
-
-split([],Name,_,Acc) ->
-  case Acc of
-    {[],[]} -> {[],[]};
-    {C, []} -> {[],"(" ++ string:join(["is_record("++Name++",'"++lists:concat([Item])++"')"||Item<-C,Item/=[]]," orelse ")++")"};
-    {[], T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([Item||Item<-T,Item/=[]]," orelse ") ++ ")",[]};
-    {_,  T} -> {"{"++ l(Name) ++ ",_} when (" ++ string:join([lists:concat([Item])||Item<-T,Item/=[]]," orelse ")++")",Name}
-  end;
-split([Head | Tail], Name,C, {Classes, Types}) ->
-    {Class, Type} = get_records(Head, Name),
-    split(Tail,Name,C,{head(Classes, Class),head(Types, Type)}).
 head(L, []) -> L;
 head(L, H) -> [H|L].
 
