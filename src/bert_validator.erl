@@ -4,24 +4,12 @@
 -export([parse_transform/2]).
 -compile(export_all).
 
--define(Valid_Start,     "ErrFields = lists:flatten(
-		  [case {RecField, F} of\n\t").
--define(Valid_End(Name),"\n\t_ -> RecField
-    end || {RecField, F} <- lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))]),
+-define(Valid_Start,     "ErrFields = lists:foldl(fun ({RecField, F}, Acc2) ->
+    case {RecField, F} of\n\t\t").
+-define(Valid_fun(Name), "\n\t\t_ -> [{RecField, D}|Acc2]
+    end end, Acc, lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))),
     {CustomValidateModule, ValidateFun} = application:get_env(bert, custom_validate, {?MODULE, custom_validate}),
-    ErrFields2 = ErrFields++CustomValidateModule:ValidateFun(D),").
--define(Valid_fun, "	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields2, D}|Acc]) of
-		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields2, D}|Acc]);
-		Err -> Err
-	end;").
--define(Valid_fun_empty,
- "\n\tCondFuns = [],
-	Fields = [],
-	FieldNames = [],
-	case validate(lists:zip3(CondFuns, FieldNames, Fields), [{ErrFields2, D}|Acc]) of
-		ok -> validate(lists:zip(FieldNames,Fields), [{ErrFields2, D}|Acc]);
-		Err -> Err
-	end;").
+    ErrFields++case ErrFields of [] -> CustomValidateModule:ValidateFun(D); _ -> [] end;").
 
 
 capitalize(Fun, [H|T]) -> [string:Fun(H)|T].
@@ -80,19 +68,8 @@ validate(List, T) ->
               _                                                  -> []
             end || Data <- T],
   case valid(Fields,Class,[]) of
-    {[_ | _] = Model, [_ | _] = When, [_ | _] = Validation} ->
-      D = lists:flatten([Item || Item <- Validation, is_tuple(Item)]),
-      V0 = "\n\tCondFuns = ["   ++ string:join(["?COND_FUN(is_record(Rec, '"++ atom_to_list(C) ++ "'))" || {_,C} <- D], ",") ++ "],",
-      V = "\n\tFields = ["      ++ string:join([case F of {I,_} -> I; I -> I end || F <- D, F /= []], ",") ++ "],",
-      V1 = "\n\tFieldNames = [" ++ string:join([case F of {I,_} -> l(I); I -> l(I) end || F <- D, F /= []], ",") ++ "],",
-      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_End(Class) ++ V0 ++ V ++ V1 ++ ?Valid_fun;
-    {[_ | _] = Model, [], [_ | _] = Validation} ->
-      V = "\nvalidate([" ++ string:join([Item || Item <- Validation, Item /= []], ",") ++ "])",
-      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ V ++ ";";
-    {[_ | _] = Model, [], []} ->
-      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ " -> ok;";
-    {[_ | _] = Model, [_ | _] = When, []} ->
-      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_End(Class) ++ ?Valid_fun_empty;
+    {Model, [_ | _] = When, _Validation} ->
+      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_fun(Class);
     _ -> ""
   end.
 
@@ -100,7 +77,7 @@ valid([],_Class, Acc) ->
   {Model, Data} = lists:unzip(Acc),
   {When, Validation} = lists:unzip(Data),
   {string:join([Item || [_|_]=Item <- Model], ", "),
-   string:join([Item || [_|_]=Item <- When],  " \n\t"),
+   string:join([Item || [_|_]=Item <- When],  " \n\t\t"),
       [Item || Item <- Validation, Item /= []]};
 valid([{Name, Type} | Rest], Class, Acc) ->
   valid(Rest,Class, Acc++[get_data(Type,Class, Name)]);
@@ -108,39 +85,39 @@ valid([_ | _Rest], _Class, _Acc) -> [].
 
 get_data(Type,Class, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
 
-get_type({integer,_},Name,_)                                -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> [];",[]};
-get_type({list,[{type,_,record,[{atom,_,C}]}]} = L,Name,_)  -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),{Name,C}};
-get_type({list,[{type,_,union, _}]} = L,Name,_)             -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),Name};
-get_type({list,_}=L,Name,_)                                 -> {guard(L, Name, "{" ++ l(Name) ++ ",_} when "),[]};
+get_type({integer,_},Name,_)                                -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> Acc2;",[]};
+get_type({list,[{type,_,record,[{atom,_,C}]}]} = L,Name,_)  -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),{Name,C}};
+get_type({list,[{type,_,union, _}]} = L,Name,_)             -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),Name};
+get_type({list,_}=L,Name,_)                                 -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),[]};
 get_type({record,[{atom,_,Atom}]} = R,Name,_Class)          -> {guard(R, Name, "{" ++ l(Name)),[]};%% TODO validate inner record
 get_type({term,[]},Name,_)                                  -> {"{" ++ l(Name)++",_} -> [];",[]};
-get_type({union,R},Name,Class) when is_list(R)              -> {guard({union, R}, Name, "{"++ l(Name)++ ",_} when "), []};
-get_type({tuple,_},Name,_)                                  -> {"{" ++ l(Name) ++ ",_} when is_tuple("++Name++") -> [];",[]};
-get_type({atom,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> [];",[]};
-get_type({binary,_},Name,_)                                 -> {"{" ++ l(Name) ++ ",_} when is_binary("++Name++") -> [];",[]};
-get_type(atom,Name,_)                                       -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> [];",[]};
-get_type({atom, _, Default},Name,_)                         -> {"{" ++ l(Name) ++ ","++atom_to_list(Default)++"} -> [];",[]};
-get_type(integer,Name,_)                                    -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> [];",[]};
+get_type({union,R},Name,Class) when is_list(R)              -> {guard({union, R}, Name, "{"++ l(Name)++ ",_} "++["when "]), []};
+get_type({tuple,_},Name,_)                                  -> {"{" ++ l(Name) ++ ",_} when is_tuple("++Name++") -> Acc2;",[]};
+get_type({atom,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> Acc2;",[]};
+get_type({binary,_},Name,_)                                 -> {"{" ++ l(Name) ++ ",_} when is_binary("++Name++") -> Acc2;",[]};
+get_type(atom,Name,_)                                       -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> Acc2;",[]};
+get_type({atom, _, Default},Name,_)                         -> {"{" ++ l(Name) ++ ","++atom_to_list(Default)++"} -> Acc2;",[]};
+get_type(integer,Name,_)                                    -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> Acc2;",[]};
 get_type(Type,Name,_)                                       -> get_records(Type,Name).
-
-%%rem_last(T, L) -> case lists:last(L) of T -> lists:droplast(L); _-> L end.
 
 -define(AND(L), case L of [] -> ""; _ -> [" andalso "] end).
 -define(OR(L), case L of [] -> "";_ -> [" orelse "] end).
 -define(LB(L), case L of [] -> ""; _ -> ["("] end).
 -define(RB(L), case L of [] -> ""; _ -> [")"] end).
 
-guard({term,[]},_Name,Acc) -> Acc++",_} -> [];";
-guard({record,[{atom,_,Atom}]},_Name,Acc) -> Acc++", #'"++atom_to_list(Atom)++"'{}} -> [];";
+guard({term,[]},_Name,Acc) -> Acc++",_} -> Acc2;";
+guard({record,[{atom,_,Atom}]},_Name,Acc) -> Acc++", #'"++atom_to_list(Atom)++"'{}} -> Acc2;";
 guard({list, [{type, _, union, []}]}, _Name, Acc) -> Acc;
 guard({list, [{type, _, union, L} = T]}, Name, Acc) when is_list(L) ->
-    Acc2 = guard(T, "Tmp", Acc ++"is_list("++Name++") -> ["++l(Name)++"||Tmp<-"++Name++", not ("),
-    case lists:last(Acc2) of " -> [];" -> lists:droplast(Acc2)++")];"; _-> lists:flatten(Acc) end;
+    Acc2 = guard(T, "Tmp", Acc ++"is_list("++Name++") ->\n\t\t\tlists:foldl(fun(Tmp, Acc3)"++[" when "]),
+    case lists:last(Acc2) of
+        " -> Acc2;" -> lists:droplast(Acc2)++" -> validate(Tmp, Acc3); (Tmp, Acc3) -> [{"++l(Name)++", D}|Acc3] end, Acc2, "++Name++");";
+        _-> lists:flatten(Acc) end;
 guard({list, [{type, I, N, R}]}, Name, Acc) ->
     guard({list, [{type, I, union, [{type, I, N, R}]}]}, Name, Acc);
 guard({list, _}, Name, Acc) -> Acc++"is_list("++Name++") -> [];";
 guard({type, _, union, U}, Name, Acc) -> guard({union, U}, Name, Acc);
-guard({union, []}, _Name, Acc) -> Acc++[" -> [];"];
+guard({union, []}, _Name, Acc) -> Acc++[" -> Acc2;"];
 guard({union, [{atom, _, A}|T]}, Name, Acc) ->
     guard({union, T}, Name, Acc++Name++"=='"++atom_to_list(A)++"'"++?OR(T));
 guard({union, [{type, _, nil, []}|T]}, Name, Acc) ->
@@ -178,10 +155,7 @@ get_records({atom,_,V},Name)                    -> {[],Name++"=='" ++ atom_to_li
 get_records(_,_)                                -> {[],[]}.
 
 get_fields(Name, Type) ->
-  Res = case Type of
-          binary -> "<<_/binary>>";
-          _ -> u(Name)
-        end,
+  Res = case Type of binary -> "<<_/binary>>"; _ -> u(Name) end,
   lists:concat([Name, " = ", Res]).
 
 prelude(Imports, Module) ->
@@ -189,22 +163,9 @@ prelude(Imports, Module) ->
     lists:concat([
     "-module(", Module, "_validator).
 "++S++"-compile(export_all).
--define(COND_FUN(Cond), fun(Rec) when Cond -> true; (_) -> false end).
 
 custom_validate(_Obj) -> [].
 validate(Obj) -> validate(Obj, []).
-validate(_, [{[_|_] , _R}|_] = Acc) -> {error, Acc};
-validate([], _) -> ok;
-validate(Objs, [{[] , R}|T]) -> validate(Objs, [R|T]);
-validate([{CondFun, _, []}|T], Acc) when is_function(CondFun) -> validate(T, Acc);
-validate([{CondFun, RecField, [Obj|TObjs]}|T], Acc) when is_function(CondFun) ->
-  case CondFun(Obj) of
-    true -> validate([{CondFun, RecField, TObjs}|T], Acc);
-    false -> {error, [RecField, Obj|Acc]} end;
-validate([{CondFun, RecField, Obj}|T], Acc) when is_function(CondFun) ->
-  case CondFun(Obj) of true -> validate(T, Acc); false -> {error, [RecField, Obj|Acc]} end;
-validate([{_Field, []}|T], Acc) -> validate(T, Acc);
-validate([{RecField, [Obj|TObjs]}|T], Acc) ->
-  case validate(Obj, [RecField|Acc]) of
-    ok -> validate([{RecField, TObjs}|T], Acc);
-    Err -> Err end;\n"]).
+validate(Obj, Acc) when is_atom(Obj) -> Acc;
+validate(Obj, Acc) when is_integer(Obj) -> Acc;
+validate(Obj, Acc) when is_binary(Obj) -> Acc;\n"]).
