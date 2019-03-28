@@ -90,7 +90,7 @@ get_type({list,[{type,_,record,[{atom,_,C}]}]} = L,Name,_)  -> {guard(L, Name, "
 get_type({list,[{type,_,union, _}]} = L,Name,_)             -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),Name};
 get_type({list,_}=L,Name,_)                                 -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),[]};
 get_type({record,[{atom,_,Atom}]} = R,Name,_Class)          -> {guard(R, Name, "{" ++ l(Name)),[]};%% TODO validate inner record
-get_type({term,[]},Name,_)                                  -> {"{" ++ l(Name)++",_} -> [];",[]};
+get_type({term,[]},Name,_)                                  -> {"{" ++ l(Name)++",_} -> Acc2;",[]};
 get_type({union,R},Name,Class) when is_list(R)              -> {guard({union, R}, Name, "{"++ l(Name)++ ",_} "++["when "]), []};
 get_type({tuple,_},Name,_)                                  -> {"{" ++ l(Name) ++ ",_} when is_tuple("++Name++") -> Acc2;",[]};
 get_type({atom,_},Name,_)                                   -> {"{" ++ l(Name) ++ ",_} when is_atom("++Name++") -> Acc2;",[]};
