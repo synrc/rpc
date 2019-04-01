@@ -64,27 +64,26 @@ form([_Attr|TAttrs], Form) -> form(TAttrs, Form);
 form([], Form) -> Form.
 
 validate([{_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}}|TFields], #form{fields = Fields} = Form) ->
-    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),{Name,Args}}]});
+    validate(TFields, Form#form{fields = Fields ++ [{Field,{Name,Args}}]});
 validate([{_,{_,_,{atom,_,_Field}}, {user_type,_, Name,_Args}} = S|TFields], #form{types = Types} = Form) ->
     Type = element(2, lists:keyfind(Name, 1, Types)),
     validate([setelement(3, S, Type),TFields], Form);
 validate([{_,{_,_,{atom,_,Field}},{type,_,Name,Args}}|TFields], #form{fields = Fields} = Form) ->
-    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),{Name,Args}}]});
+    validate(TFields, Form#form{fields = Fields ++ [{Field,{Name,Args}}]});
 validate([{_,{_,_,{atom,_,Field},{_,_,_Value}},Args}|TFields], #form{fields = Fields} = Form) ->
-    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),Args}]});
+    validate(TFields, Form#form{fields = Fields ++ [{Field,Args}]});
 validate([_|TFields], #form{} = Form) -> validate(TFields, Form);
 validate([], #form{record = Class, fields = Fields}) -> valid(Fields, Class, []).
 
 valid([],Class, Acc) ->
   {Model, Data} = lists:unzip(Acc),
   {When, Validation} = lists:unzip(Data),
-  {M = string:join([Item || [_|_]=Item <- Model], ", "),
-   W = string:join([Item || [_|_]=Item <- When],  " \n\t\t"),
-      [Item || Item <- Validation, Item /= []]},
+  {M = string:join(Model, ", "),
+   W = string:join(When,  " \n\t\t"), Validation},
     case W of [] -> [];
         _ -> "\nvalidate(D = #'" ++ Class ++ "'{" ++ M ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ W ++ ?Valid_fun(Class) end;
 valid([{Name, Type} | Rest], Class, Acc) ->
-  valid(Rest,Class, Acc++[get_data(Type,Class, Name)]);
+  valid(Rest,Class, Acc++[get_data(Type,Class, atom_to_list(Name))]);
 valid([_ | _Rest], _Class, _Acc) -> [].
 
 get_data(Type,Class, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
