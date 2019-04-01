@@ -63,28 +63,28 @@ form([{attribute,_, file, {HRL,_}}|TAttrs], #form{files = Files} = Form) ->
 form([_Attr|TAttrs], Form) -> form(TAttrs, Form);
 form([], Form) -> Form.
 
-%%validate(List, Fs, #form{types = Types} = Form) ->
+%%validate([{_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}}|TFs]=Fs, #form{types = Types, record = Class} = Form) ->
+%%    {lists:concat([Field]),{Name,Args}};
 
 validate(F, #form{types = Types, record = Class}) ->
   Fields = [case Data of
               {_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}} -> {lists:concat([Field]),{Name,Args}};
               {_,{_,_,{atom,_,Field}},{type,_,Name,Args}}        -> {lists:concat([Field]),{Name,Args}};
               {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
+              {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
 %%              {_,{_,_,{atom,_,Field}}, {user_type,_, Name,Args}}  -> {Name, Type} = lists:keyfind(Name, 1, Types);
               _                                          -> []
             end || Data <- F],
-  case valid(Fields,Class,[]) of
-    {Model, [_ | _] = When, _Validation} ->
-      "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_fun(Class);
-    _ -> ""
-  end.
+    valid(Fields,Class,[]).
 
-valid([],_Class, Acc) ->
+valid([],Class, Acc) ->
   {Model, Data} = lists:unzip(Acc),
   {When, Validation} = lists:unzip(Data),
-  {string:join([Item || [_|_]=Item <- Model], ", "),
-   string:join([Item || [_|_]=Item <- When],  " \n\t\t"),
-      [Item || Item <- Validation, Item /= []]};
+  {M = string:join([Item || [_|_]=Item <- Model], ", "),
+   W = string:join([Item || [_|_]=Item <- When],  " \n\t\t"),
+      [Item || Item <- Validation, Item /= []]},
+    case W of [] -> [];
+        _ -> "\nvalidate(D = #'" ++ Class ++ "'{" ++ M ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ W ++ ?Valid_fun(Class) end;
 valid([{Name, Type} | Rest], Class, Acc) ->
   valid(Rest,Class, Acc++[get_data(Type,Class, Name)]);
 valid([_ | _Rest], _Class, _Acc) -> [].
