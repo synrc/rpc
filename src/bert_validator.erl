@@ -4,7 +4,7 @@
 -export([parse_transform/2]).
 -compile(export_all).
 
--record(form, {records = [], module = [], files = [], types = [], name = []}).
+-record(form, {validators = [], module = [], files = [], types = [], name = [], record = []}).
 
 -define(Valid_Start,     "ErrFields = lists:foldl(fun ({RecField, F}, Acc2) ->
     case {RecField, F} of\n\t\t").
@@ -27,7 +27,7 @@ parse_transform(Forms, _Options) ->
   Forms.
 
 directives(Forms) ->
-    #form{records = Validators, module = Module, files = Imports} = form(Forms),
+    #form{validators = Validators, module = Module, files = Imports} = form(Forms),
     {iolist_to_binary([prelude(Imports, Module),
      lists:sublist(Validators, length(Validators)-1) ++ "."]),
      lists:concat([Module,"_validator"])}.
@@ -45,10 +45,12 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
     relative_path(Components, KeyWord, {Acc, 0}).
 
 form(Forms) -> form(Forms, #form{}).
-form([{attribute,_, record, {List, T}}|TAttrs], #form{records = Validators} = Form) ->
-    form(TAttrs, Form#form{records = Validators ++validate(List, T)});
+form([{attribute,_, record, {List, T}}|TAttrs], #form{validators = Validators} = Form) ->
+    form(TAttrs, Form#form{validators = Validators ++validate(T, Form#form{record = lists:concat([List])})});
 form([{attribute,_, module, Name}|TAttrs], #form{} = Form) ->
     form(TAttrs, Form#form{module = Name});
+form([{attribute,_, type, Type}|TAttrs], #form{types = Types} = Form) ->
+    form(TAttrs, Form#form{types = Types++[Type]});
 form([{attribute,_, file, {HRL,_}}|TAttrs], #form{files = Files} = Form) ->
     Imports =
         case filename:extension(HRL) of
@@ -61,14 +63,16 @@ form([{attribute,_, file, {HRL,_}}|TAttrs], #form{files = Files} = Form) ->
 form([_Attr|TAttrs], Form) -> form(TAttrs, Form);
 form([], Form) -> Form.
 
-validate(List, T) ->
-  Class = lists:concat([List]),
+%%validate(List, Fs, #form{types = Types} = Form) ->
+
+validate(F, #form{types = Types, record = Class}) ->
   Fields = [case Data of
               {_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}} -> {lists:concat([Field]),{Name,Args}};
               {_,{_,_,{atom,_,Field}},{type,_,Name,Args}}        -> {lists:concat([Field]),{Name,Args}};
               {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
-              _                                                  -> []
-            end || Data <- T],
+%%              {_,{_,_,{atom,_,Field}}, {user_type,_, Name,Args}}  -> {Name, Type} = lists:keyfind(Name, 1, Types);
+              _                                          -> []
+            end || Data <- F],
   case valid(Fields,Class,[]) of
     {Model, [_ | _] = When, _Validation} ->
       "\nvalidate(D = #'" ++ Class ++ "'{" ++ Model ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ When ++ ?Valid_fun(Class);
