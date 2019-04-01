@@ -4,6 +4,8 @@
 -export([parse_transform/2]).
 -compile(export_all).
 
+-record(form, {records = [], module = [], files = [], types = [], name = []}).
+
 -define(Valid_Start,     "ErrFields = lists:foldl(fun ({RecField, F}, Acc2) ->
     case {RecField, F} of\n\t\t").
 -define(Valid_fun(Name), "\n\t\t_ -> [{RecField, D}|Acc2]
@@ -25,7 +27,7 @@ parse_transform(Forms, _Options) ->
   Forms.
 
 directives(Forms) ->
-    {Validators, Module, Imports} = form(Forms),
+    #form{records = Validators, module = Module, files = Imports} = form(Forms),
     {iolist_to_binary([prelude(Imports, Module),
      lists:sublist(Validators, length(Validators)-1) ++ "."]),
      lists:concat([Module,"_validator"])}.
@@ -42,12 +44,12 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
     Components = lists:reverse(filename:split(Pathfile)),
     relative_path(Components, KeyWord, {Acc, 0}).
 
-form(Forms) -> form(Forms, {[], [], []}).
-form([{attribute,_, record, {List, T}}|TAttrs], {Validators, Module, Files}) ->
-    form(TAttrs, {Validators ++validate(List, T), Module, Files});
-form([{attribute,_, module, Name}|TAttrs], {Validators, _Module, Files}) ->
-    form(TAttrs, {Validators, Name, Files});
-form([{attribute,_, file, {HRL,_}}|TAttrs], {Validators, Module, Files}) ->
+form(Forms) -> form(Forms, #form{}).
+form([{attribute,_, record, {List, T}}|TAttrs], #form{records = Validators} = Form) ->
+    form(TAttrs, Form#form{records = Validators ++validate(List, T)});
+form([{attribute,_, module, Name}|TAttrs], #form{} = Form) ->
+    form(TAttrs, Form#form{module = Name});
+form([{attribute,_, file, {HRL,_}}|TAttrs], #form{files = Files} = Form) ->
     Imports =
         case filename:extension(HRL) of
             ".hrl" ->
@@ -55,9 +57,9 @@ form([{attribute,_, file, {HRL,_}}|TAttrs], {Validators, Module, Files}) ->
                     [] -> Files;
                     RelPath -> [RelPath | Files] end;
             _ -> Files end,
-    form(TAttrs, {Validators, Module, Imports});
-form([_Attr|TAttrs], Acc) -> form(TAttrs, Acc);
-form([], Acc) -> Acc.
+    form(TAttrs, Form#form{files = Imports});
+form([_Attr|TAttrs], Form) -> form(TAttrs, Form);
+form([], Form) -> Form.
 
 validate(List, T) ->
   Class = lists:concat([List]),
