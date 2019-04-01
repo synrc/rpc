@@ -4,7 +4,7 @@
 -export([parse_transform/2]).
 -compile(export_all).
 
--record(form, {validators = [], module = [], files = [], types = [], name = [], record = []}).
+-record(form, {validators = [], module = [], files = [], types = [], name = [], record = [], fields = []}).
 
 -define(Valid_Start,     "ErrFields = lists:foldl(fun ({RecField, F}, Acc2) ->
     case {RecField, F} of\n\t\t").
@@ -63,19 +63,17 @@ form([{attribute,_, file, {HRL,_}}|TAttrs], #form{files = Files} = Form) ->
 form([_Attr|TAttrs], Form) -> form(TAttrs, Form);
 form([], Form) -> Form.
 
-%%validate([{_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}}|TFs]=Fs, #form{types = Types, record = Class} = Form) ->
-%%    {lists:concat([Field]),{Name,Args}};
-
-validate(F, #form{types = Types, record = Class}) ->
-  Fields = [case Data of
-              {_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}} -> {lists:concat([Field]),{Name,Args}};
-              {_,{_,_,{atom,_,Field}},{type,_,Name,Args}}        -> {lists:concat([Field]),{Name,Args}};
-              {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
-              {_,{_,_,{atom,_,Field},{_,_,_Value}},Args}         -> {lists:concat([Field]),Args};
-%%              {_,{_,_,{atom,_,Field}}, {user_type,_, Name,Args}}  -> {Name, Type} = lists:keyfind(Name, 1, Types);
-              _                                          -> []
-            end || Data <- F],
-    valid(Fields,Class,[]).
+validate([{_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}}|TFields], #form{fields = Fields} = Form) ->
+    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),{Name,Args}}]});
+validate([{_,{_,_,{atom,_,_Field}}, {user_type,_, Name,_Args}} = S|TFields], #form{types = Types} = Form) ->
+    Type = element(2, lists:keyfind(Name, 1, Types)),
+    validate([setelement(3, S, Type),TFields], Form);
+validate([{_,{_,_,{atom,_,Field}},{type,_,Name,Args}}|TFields], #form{fields = Fields} = Form) ->
+    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),{Name,Args}}]});
+validate([{_,{_,_,{atom,_,Field},{_,_,_Value}},Args}|TFields], #form{fields = Fields} = Form) ->
+    validate(TFields, Form#form{fields = Fields ++ [{lists:concat([Field]),Args}]});
+validate([_|TFields], #form{} = Form) -> validate(TFields, Form);
+validate([], #form{record = Class, fields = Fields}) -> valid(Fields, Class, []).
 
 valid([],Class, Acc) ->
   {Model, Data} = lists:unzip(Acc),
