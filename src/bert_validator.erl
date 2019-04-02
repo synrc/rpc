@@ -73,20 +73,20 @@ validate([{_,{_,_,{atom,_,Field}},{type,_,Name,Args}}|TFields], #form{fields = F
 validate([{_,{_,_,{atom,_,Field},{_,_,_Value}},Args}|TFields], #form{fields = Fields} = Form) ->
     validate(TFields, Form#form{fields = Fields ++ [{Field,Args}]});
 validate([_|TFields], #form{} = Form) -> validate(TFields, Form);
-validate([], #form{record = Class, fields = Fields}) -> valid(Fields, Class, []).
+validate([], #form{fields = Fields} = Form) -> valid(Fields, Form, []).
 
-valid([],Class, Acc) ->
+valid([],#form{record = Class}, Acc) ->
   {Model, Data} = lists:unzip(Acc),
   {When, Validation} = lists:unzip(Data),
   {M = string:join(Model, ", "),
    W = string:join(When,  " \n\t\t"), Validation},
     case W of [] -> [];
         _ -> "\nvalidate(D = #'" ++ Class ++ "'{" ++ M ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ W ++ ?Valid_fun(Class) end;
-valid([{Name, Type} | Rest], Class, Acc) ->
-  valid(Rest,Class, Acc++[get_data(Type,Class, atom_to_list(Name))]);
-valid([_ | _Rest], _Class, _Acc) -> [].
+valid([{Name, Type} | Rest], #form{} = Form, Acc) ->
+  valid(Rest, Form, Acc++[get_data(Type, Form, atom_to_list(Name))]);
+valid([_ | _Rest], _Form, _Acc) -> [].
 
-get_data(Type,Class, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
+get_data(Type,#form{record = Class}, Name)  ->  {get_fields(Name, Type), get_type(Type, u(Name), Class)}.
 
 get_type({integer,_},Name,_)                                -> {"{" ++ l(Name) ++ ",_} when is_integer("++Name++") -> Acc2;",[]};
 get_type({list,[{type,_,record,[{atom,_,C}]}]} = L,Name,_)  -> {guard(L, Name, "{" ++ l(Name) ++ ",_} "++["when "]),{Name,C}};
