@@ -15,7 +15,6 @@
     case {RecField, F} of\n\t\t").
 -define(Valid_fun(Name), "\n\t\t_ -> [{RecField, D}|Acc2]
     end end, Acc, lists:zip(record_info(fields, '"++Name++"'), tl(tuple_to_list(D)))),
-    {CustomValidateModule, ValidateFun} = application:get_env(bert, custom_validate, {?MODULE, custom_validate}),
     ErrFields++case ErrFields of [] -> CustomValidateModule:ValidateFun(D); _ -> [] end;").
 
 
@@ -86,7 +85,8 @@ valid([],#form{record = Class}, Acc) ->
   {M = string:join(Model, ", "),
    W = string:join(When,  " \n\t\t"), Validation},
     case W of [] -> [];
-        _ -> "\nvalidate(D = #'" ++ Class ++ "'{" ++ M ++ "}, Acc) -> \n\t" ++ ?Valid_Start ++ W ++ ?Valid_fun(Class) end;
+        _ -> "\nvalidate(D = #'" ++ Class ++ "'{" ++ M ++ "}, Acc, {CustomValidateModule, ValidateFun} = CM) -> \n\t"
+                ++ ?Valid_Start ++ W ++ ?Valid_fun(Class) end;
 valid([{Name, Type} | Rest], #form{} = Form, Acc) ->
   valid(Rest, Form, Acc++[{get_fields(atom_to_list(Name), Type), get_type(Type, u(atom_to_list(Name)), Form)}]);
 valid([_ | _Rest], _Form, _Acc) -> [].
@@ -123,7 +123,8 @@ guard({list, [{type, _, union, []}]}, _Name, _Form, Acc) -> Acc;
 guard({list, [{type, _, union, L} = T]}, Name, Form,Acc) when is_list(L) ->
     Acc2 = guard(T, "Tmp", Form, Acc ++"is_list("++Name++") ->\n\t\t\tlists:foldl(fun(Tmp, Acc3)"++[" when "]),
     case lists:last(Acc2) of
-        " -> Acc2;" -> lists:droplast(Acc2)++" -> validate(Tmp, Acc3); (Tmp, Acc3) -> [{"++l(Name)++", D}|Acc3] end, Acc2, "++Name++");";
+        " -> Acc2;" -> lists:droplast(Acc2)++" -> validate(Tmp, Acc3, CM); (Tmp, Acc3) -> [{"++
+                        l(Name)++", D}|Acc3] end, Acc2, "++Name++");";
         _-> lists:flatten(Acc) end;
 guard({list, [{type, I, N, R}]}, Name, Form, Acc) ->
     guard({list, [{type, I, union, [{type, I, N, R}]}]}, Name, Form, Acc);
@@ -165,7 +166,7 @@ prelude(Imports, Module) ->
 "++S++"-compile(export_all).
 
 custom_validate(_Obj) -> [].
-validate(Obj) -> validate(Obj, []).
-validate(Obj, Acc) when is_atom(Obj) -> Acc;
-validate(Obj, Acc) when is_integer(Obj) -> Acc;
-validate(Obj, Acc) when is_binary(Obj) -> Acc;\n"]).
+validate(Obj) -> validate(Obj, [], application:get_env(bert, custom_validate, {?MODULE, custom_validate})).
+validate(Obj, Acc, _) when is_atom(Obj) -> Acc;
+validate(Obj, Acc, _) when is_integer(Obj) -> Acc;
+validate(Obj, Acc, _) when is_binary(Obj) -> Acc;\n"]).
