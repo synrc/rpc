@@ -24,7 +24,7 @@ form(_Form) ->  [].
 
 prelude()  ->
     "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
-    "function check_len(x)  { try { return (eval('len'+utf8_dec(x.v[0].v))() == x.v.length) ? true : false }\n"
+    "function check_len(x)  { try { return (eval('len'+utf8_arr(x.v[0].v))() == x.v.length) ? true : false }\n"
     "                         catch (e) { return false; } }\n\n"
     "function scalar(data)    {\n"
     "    var res = undefined;\n"
@@ -42,7 +42,7 @@ decode(_F) -> lists:concat(["function decode(x) {\n"
     "    } else if (x.t == 108) {\n"
     "        var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;\n"
     "    } else if (x.t == 109) {\n"
-    "        return utf8_dec(x.v);\n"
+    "        return utf8_arr(x.v);\n"
     "    } else if (x.t == 104 && check_len(x)) {\n"
     "        return eval('dec'+x.v[0].v)(x);\n"
     "    } else if (x.t == 104) {\n"
@@ -117,7 +117,7 @@ pack({Name,_Args}) -> io_lib:format("encode(d.~s)",[Name]).
 
 unpack({_Name,{X,_}},I) when X == tuple orelse X == term -> lists:concat(["decode(d.v[",I,"])"]);
 unpack({Name,{union,[{type,_,nil,[]},{type,_,Type,Args}]}},I) -> unpack({Name,{Type,Args}},I);
-unpack({_Name,{X,[]}},I) when X == binary -> lists:concat(["utf8_dec(d.v[",I,"].v)"]);
+unpack({_Name,{X,[]}},I) when X == binary -> lists:concat(["utf8_arr(d.v[",I,"].v)"]);
 unpack({_Name,{X,[]}},I) when X == integer orelse X == atom orelse X == list -> lists:concat(["d.v[",I,"].v"]);
 unpack({_Name,_Args},I) -> lists:concat(["decode(d.v[",I,"])"]).
 
