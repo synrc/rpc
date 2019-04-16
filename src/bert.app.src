@@ -1,6 +1,6 @@
 {application, bert,
    [{description, "BERT Type Driven Generator"},
-    {vsn, "1.11"},
+    {vsn, "2.4"},
     {registered, []},
     {applications, [kernel,stdlib]},
     {mod, { bert, []}},
