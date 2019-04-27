@@ -1,7 +1,10 @@
-BERT: Type Driven Parser Generator
-==================================
+BERT: ERLANG API SDK Generators
+===============================
 
 [![Build Status](https://travis-ci.org/synrc/bert.svg?branch=master)](https://travis-ci.org/synrc/bert)
+
+The main idea is to have unified code of any possible generators for all languages
+from HRL Type Specification.
 
 Supported Generators
 --------------------
@@ -27,7 +30,7 @@ checking the model for particular type signature with Sums
 and Products) and general which encode/decode anything that
 can be translated into correct encoding. For example, JavaScript
 encoder/decode generator presented in this repo is just like
-that (it didn't check types and constants, given in Erlang
+that (it doesn't check types and constants, given in Erlang
 HRL files). However, Swift version has the ability to check
 encoded/decoded term to comply the Erlang Type Specification.
 
