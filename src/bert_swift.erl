@@ -3,11 +3,15 @@
 -compile(export_all).
 -include("bert.hrl").
 
-parse_transform(Forms, _Options) -> switch(directives(Forms)), Forms.
+parse_transform(Forms, _Options) -> switch(directives(Forms)),
+    io:format("Swift Models Generated: ~p~n",[?SWIFT]),
+    Forms.
 directives(Forms) -> lists:flatten([ form(F) || F <- Forms ]).
 
 switch(List) ->
-    file:write_file(filename:join(?SWIFT,"Source/Decoder.swift"),
+    File = filename:join(?SWIFT,"Source/Decoder.swift"),
+    filelib:ensure_dir(File),
+    file:write_file(File,
     iolist_to_binary(lists:concat([
        "func parseObject(name: String, body:[Model], tuple: BertTuple) -> AnyObject?\n"
        "{\n    switch name {\n",
@@ -41,18 +45,21 @@ form({attribute,_,record,{List,T}}) ->
 form(_Form) ->  [].
 
 class(List,T) ->
-   %io:format("Swift ~p~n",[{List,T}]),
+%   io:format("Swift ~p~n",[{List,T}]),
    File = filename:join(?SWIFT,"Model/"++atom_to_list(List)++".swift"),
-   %io:format("Generated Swift Model: ~p~n",[File]),
+%   io:format("Generated Swift Model: ~p~n",[File]),
    case lists:concat([ io_lib:format("\n    var ~s",
         [ infer(Name,Args,atom_to_list(Field))])
      || {_,{_,_,{atom,_,Field},_Value},{type,_,Name,Args}} <- T ]) of
         [] -> [];
-        Fields -> file:write_file(File,iolist_to_binary(lists:concat(["\nclass ",List," {", Fields, "\n}"]))) end.
+        Fields ->
+            filelib:ensure_dir(File),
+            file:write_file(File,iolist_to_binary(lists:concat(["\nclass ",List," {", Fields, "\n}"]))) end.
 
 spec(List,T) ->
     File = filename:join(?SWIFT,"Spec/"++atom_to_list(List)++"_Spec.swift"),
-    %io:format("Generated Swift Spec: ~p~n",[File]),
+%    io:format("Generated Swift Spec: ~p~n",[File]),
+    filelib:ensure_dir(File),
     file:write_file(File,
     iolist_to_binary("func get_"++atom_to_list(List) ++ "() -> Model {\n  return " ++ premodel(List,T) ++ "}\n")).
 
