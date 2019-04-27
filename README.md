@@ -239,10 +239,11 @@ OK
 Credits
 -------
 
-* Anton Makarov
-* Viacheslav Katsuba
-* Maxim Sokhatsky
-* Dmytro Boiko
+* Yuri Maslovsky — ERLANG
+* Maxim Sokhatsky — GOOGLE, JAVASCRIPT
+* Dmytro Boiko — ERLANG, JAVASCRIPT
+* Anton Makarov — SWIFT
+* Viacheslav Katsuba — JAVASCRIPT
 
 Let's build true native Erlang zero-overhead encoders/decoders for all languages with you!
 
