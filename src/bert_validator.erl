@@ -140,6 +140,8 @@ guard({union, [{type, _, union, _} = U|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, lists:droplast(guard(U, Name, Form, Acc)) ++ ?OR(T));
 guard({union, [{type, _, nil, []}|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, Acc++Name++"==[]"++?OR(T));
+guard({union, [{type, _, range, [{integer,_,Min},{integer,_,Max}]}|T]}, Name, Form, Acc) ->
+    guard({union, T}, Name, Form, Acc++Name++">="++integer_to_list(Min)++" andalso "++Name++ "=<"++integer_to_list(Max)++?OR(T));
 guard({union, [{type, _, tuple, _}|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, Acc++"is_tuple("++Name++")"++?OR(T));
 guard({union, [{type, _, iolist, _}|T]}, Name, Form, Acc) ->
