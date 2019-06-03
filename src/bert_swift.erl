@@ -115,7 +115,9 @@ keyword(boolean,_Args) -> "Bool";
 keyword(atom,_Args)    -> "StringAtom";
 keyword(binary,_Args)  -> "String";
 keyword(union,_Args)   -> "AnyObject";
-keyword(nil,_Args)     -> "AnyObject".
+keyword(nil,_Args)     -> "AnyObject";
+keyword(reference,_)   -> "AnyObject";
+keyword(any,_)         -> "AnyObject".
 
 infer(union,Args,Field) -> Field ++ ": " ++ simple(union,Args,{Field,Args}) ++ "?";
 infer(Name,Args,Field)  -> Field ++ ": " ++ keyword(Name,Args,{Field,Args}) ++ "?".

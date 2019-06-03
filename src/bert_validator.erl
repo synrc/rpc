@@ -23,6 +23,7 @@ u(Name) -> capitalize(to_upper, Name).
 l(Name) -> capitalize(to_lower, Name).
 
 parse_transform(Forms, _Options) ->
+  io:format("Disallowed: ~p~n",[application:get_env(bert, disallowed, [])]),
   file:delete("temp.txt"),
   {Bin,Module} = directives(Forms),
   File = filename:join([?ERL, lists:concat([Module,".erl"])]),
@@ -50,7 +51,9 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
 
 form(Forms) -> form(Forms, #form{}).
 form([{attribute,_, record, {List, T}}|TAttrs], #form{validators = Validators} = Form) ->
-    form(TAttrs, Form#form{validators = Validators ++validate(T, Form#form{record = lists:concat([List])})});
+    case lists:member(List,application:get_env(bert, disallowed, [])) of
+         true -> form(TAttrs, Form);
+        false -> form(TAttrs, Form#form{validators = Validators ++validate(T, Form#form{record = lists:concat([List])})}) end;
 form([{attribute,_, module, Name}|TAttrs], #form{} = Form) ->
     form(TAttrs, Form#form{module = Name});
 form([{attribute,_, type, Type}|TAttrs], #form{types = Types} = Form) ->
