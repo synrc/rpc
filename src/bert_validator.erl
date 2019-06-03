@@ -51,7 +51,7 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
 
 form(Forms) -> form(Forms, #form{}).
 form([{attribute,_, record, {List, T}}|TAttrs], #form{validators = Validators} = Form) ->
-    case lists:member(List,application:get_env(bert, disallowed, [])) of
+    case lists:member(List,application:get_env(bert, disallowed, ?DISDEF)) of
          true -> form(TAttrs, Form);
         false -> form(TAttrs, Form#form{validators = Validators ++validate(T, Form#form{record = lists:concat([List])})}) end;
 form([{attribute,_, module, Name}|TAttrs], #form{} = Form) ->
