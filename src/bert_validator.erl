@@ -154,6 +154,10 @@ guard({union, [{type, _, term, _}|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, Acc++" true "++?OR(T));
 guard({union, [{type, _, integer, _}|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, Acc++"is_integer("++Name++")"++?OR(T));
+
+guard({union, [{type, _, string, _} | T]}, Name, Form, Acc) ->
+    guard({union, T}, Name, Form, Acc ++ "is_list(" ++ Name ++ ")" ++ ?OR (T));
+
 guard({union, [{type, _, record, [{atom, _, R}]}|T]}, Name, Form, Acc) ->
     guard({union, T}, Name, Form, Acc++"is_record("++Name++",'"++atom_to_list(R)++"')"++?OR(T));
 guard({union, [{type, _, list, T}]}, Name, Form, Acc) ->
