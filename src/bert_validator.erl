@@ -23,7 +23,7 @@ u(Name) -> capitalize(to_upper, Name).
 l(Name) -> capitalize(to_lower, Name).
 
 parse_transform(Forms, _Options) ->
-  io:format("Disallowed: ~p~n",[application:get_env(bert, disallowed, [])]),
+  io:format("Disallowed: ~p~n",[application:get_env(bert, disallowed, ?DISDEF)]),
   file:delete("temp.txt"),
   {Bin,Module} = directives(Forms),
   File = filename:join([?ERL, lists:concat([Module,".erl"])]),
