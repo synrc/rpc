@@ -7,7 +7,6 @@ parse_transform(NForms, _Options) ->
     File = filename:join([?JS, "json-bert.js"]),
     io:format("Generated JavaScript: ~p~n", [File]),
     file:write_file(File, directives(NForms)),
-    io:format("JS Forms: ~p~n",[NForms]),
     NForms.
 
 directives(Forms) -> iolist_to_binary([prelude(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
