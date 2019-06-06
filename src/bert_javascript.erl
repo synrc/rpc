@@ -3,19 +3,12 @@
 -compile(export_all).
 -include("bert.hrl").
 
-parse_transform(Forms, _Options) ->
-    Files = application:get_env(bert, allowed_hrl, []),
-    NForms = case Files of [] -> Forms; _ -> filter(Forms, Files, {false, []}) end,
+parse_transform(NForms, _Options) ->
     File = filename:join([?JS, "json-bert.js"]),
     io:format("Generated JavaScript: ~p~n", [File]),
-    file:write_file(File, directives(NForms)), NForms.
-
-filter([], _Files, {_, Acc}) -> Acc;
-filter([HD = {attribute, _, file, {FileName, _}} | Rest], Files, {_, Acc}) ->
-  Name = filename:basename(FileName, ".hrl"),
-  filter(Rest, Files, case lists:member(Name, Files) of true -> {true, Acc ++ [HD]};_ -> {false, Acc} end);
-filter([HD | Rest], Files, {true, Acc}) -> filter(Rest, Files, {true, Acc ++ [HD]});
-filter([_HD | Rest], Files, {false, Acc}) -> filter(Rest, Files, {false, Acc}).
+    file:write_file(File, directives(NForms)),
+    io:format("JS Forms: ~p~n",[NForms]),
+    NForms.
 
 directives(Forms) -> iolist_to_binary([prelude(),decode(Forms),encode(Forms),[ form(F) || F <- Forms ]]).
 
