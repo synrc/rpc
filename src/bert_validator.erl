@@ -26,8 +26,9 @@ parse_transform(Forms, _Options) ->
   file:delete("temp.txt"),
   {Bin,Module} = directives(Forms),
   File = filename:join([?ERL, lists:concat([Module,".erl"])]),
+  io:format("Processing Models Validator: ~p~n", [File]),
+  ok = file:write_file(File, Bin),
   io:format("Generated Models Validator: ~p~n", [File]),
-  file:write_file(File, Bin),
   Forms.
 
 directives(Forms) ->
