@@ -2,3 +2,4 @@
 **/*.java
 ebin
 deps
+.rebar3/

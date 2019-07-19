@@ -165,6 +165,8 @@ prelude(Imports, Module) ->
     lists:concat([
     "-module(", Module, "_validator).
 "++S++"-compile(export_all).
+-dialyzer({nowarn_function,validate/3}).
+
 
 custom_validate(_Obj) -> [].
 validate(Obj) -> validate(Obj, [], application:get_env(bert, custom_validate, {?MODULE, custom_validate})).
