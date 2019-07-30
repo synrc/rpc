@@ -4,12 +4,13 @@
 
 % mini prelude
 
+c(K)      -> list_to_atom(binary_to_list(term_to_binary(K))).
 tab(N)    -> bert:tab(N).
 undup(X)  -> sets:to_list(sets:from_list(X)).
 j(X)      -> lists:concat(X).
 j(X,Y)    -> string:join(X,Y).
-var(K)    -> application:get_env(bert,K,[]).
-svar(K,V) -> application:set_env(bert,K,V).
+var(K)    -> application:get_env(bert,c(K),[]).
+svar(K,V) -> application:set_env(bert,c(K),V).
 ensure()  -> Dir = filename:join([?GOOGLE,var(module)]), filelib:ensure_dir(Dir++"/java/"), Dir.
 any(M)    -> X = ["google","protobuf","Any"], svar({int,M}, [j(X,"/")] ++ var({int,M})), j(X,".").
 
@@ -23,7 +24,7 @@ parse_transform(Forms, _O) ->
     Forms.
 
 gen(Forms) ->
-    svar(enums, []),
+    svar({enums,[]}, []),
     lists:flatten([ form(F) || F <- Forms ]).
 
 save({[],_}) -> [];
@@ -79,7 +80,7 @@ header(N) ->
     "option java_outer_classname = \"", N, "Cls\";\n", Publics, "\n" ]).
 
 enums() -> j([ begin {_,F} = Name, Enums = var({enum,Name}),
-                     enum(F,"Enum",Enums) end || Name <- var(enums) ]).
+                     enum(F,"Enum",Enums) end || Name <- var({enums,[]}) ]).
 
 enum(F,Sfx,Enums) ->
     X = "enum " ++ j([F,Sfx]) ++ " {\n" ++
@@ -110,9 +111,9 @@ infer(M,union,[{type,_,nil,_},{type,_,record,X}],F,P) -> infer(M,record,X,F,P);
 infer(M,union,[{type,_,nil,_},{type,_,N,_}=X],F,P)    -> infer(M,N,X,F,P);
 infer(M,union,T,F,P) ->
     A = [ O || {_,_,J,_} = O <- T, J /= nil ],
-    {Atoms,Rest} = lists:partition(fun ({atom,_,_}) -> true; (_) -> false end, A),
-    svar({enum,{M,F}}, [ X || {_,_,X} <- Atoms ]),
-    svar(enums,        [{M,F}] ++ var(enums)),
+    {Atoms,Rest} = lists:partition(fun ({atom,_,_,_}) -> true; (_) -> false end, A),
+    svar({enum,{M,F}}, [ X || {_,_,X,_} <- Atoms ]),
+    svar({enums,[]},        [{M,F}] ++ var({enums,[]})),
     bert:info(?MODULE,"INFER: ~p~n",[{M,F,Atoms,Rest}]),
     case {Atoms,Rest} of
          {[],_}             -> simple(M,A,{F,A,P});
@@ -136,5 +137,4 @@ simple(M,T,{F,A,P}) ->
     case length(Fold) of
          1 -> [{J}] = Fold, J;
          _ -> bert:info(?MODULE,"FOLD ~p: ~p~n",[M,Fold]),
-              j(["oneof ",F," {\n",j(lists:map(fun({X})->tab(2)++X end,Fold)),tab(1),"}\n"]) end;
-simple(_M,_,_) -> any(_M).
+              j(["oneof ",F," {\n",j(lists:map(fun({X})->tab(2)++X end,Fold)),tab(1),"}\n"]) end.
