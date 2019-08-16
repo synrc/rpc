@@ -173,7 +173,7 @@
 
         if (JSON.stringify(o) != JSON.stringify(
              decode(dec(enc(encode(o)).buffer)))) {
-            console.log("Original: " + o + " <=> Decode: " 
+            console.log("Original: " + o + " #&60;=&&62; Decode: " 
                 + d + " %c [Error]", "color: red");
             res = false;
         } else {
