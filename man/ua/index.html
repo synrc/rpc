@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="" />
+<meta name="author" content="Maxim Sokhatsky" />
+<title>BERT</title>
+<link rel="stylesheet" href="https://tonpa.guru/blank.css?v=2" />
+</head>
+<body>
+<nav>
+    <a href="https://n2o.dev">DEV</a>
+    <a href="#" style="background:#ededed;">BERT</a>
+    <a href="#" style="background:#ededed;">UA</a>
+    <a href="../../index.html">EN</a>
+</nav>
+<header>
+    <a href="https://github.com/synrc/bert"><img src="https://synrc.space/images/Synrc Neo.svg?v=1" /></a>
+    <h1>BERT</h1>
+</header>
+<aside>
+    <article>
+        <section>
+            <h3>СИНОПСИС</h3>
+            <div>BERT: ERLANG API SDK Генератори<br /><br />
+                 <b>Головна ідея — отримати уніфікований код усіх можливих генераторів для всіх мов із специфікації типу HRL.</b><br /><br />
+                 Підтримувані генератори:<br /><br />
+                 <ul>
+                   <li>Erlang валідація відповідно до специфікації типів (BERT)</li>
+                   <li>JavaScript (BERT)</li>
+                   <li>Swift (BERT)</li>
+                   <li>Google Protobuf Специфікація (PROTOBUF)</li>
+                 </ul>
+            </div>
+        </section>
+<!--
+        <section>
+            <a name="usage"></a><h3>USAGE</h3>
+            <div>Just:</div>
+        <figure>
+        <code>
+  code
+        </code>
+        </figure>
+            <div>
+                OCT 2018 © <a href="https://github.com/5HT">5HT</a> <a href="https://5ht.co/license.htm">ISC</a><br />
+                VER 5.10
+            </div>
+        </section>-->
+    </article>
+</aside>
+<main>
+    <section>
+        <a name="intro"></a><h3>ВСТУП</h3>
+        <p>
+            Як ви можете знати, Erlang має власне бінарне кодування BERT всередині своєї віртуальної машини під назвою BEAM.
+            Для enterprise RPC зазвичай ви використовуєте protobuf або MessagePack, Thrift або ASN.1 бінарні парсер-генератори.
+            Однак, як ви знаєте, Erlang не є надто швидким у будь-яких завданнях, окрім переміщування бінарних даних між сокетами.
+            Тому ми в Synrc зазвичай використовуємо нативне кодування Erlang BERT для всіх клієнтів з нульовим кодуванням/декодуванням на стороні сервера.
+        </p>
+        <p>
+            Кодери/декодери можуть бути двох видів:
+            строгі (з перевіркою моделі для підпису певного типу за допомогою сум та добутків)
+            та загальні, які кодують/декодують все, що може бути закодоване у коректне кодування.
+            Наприклад, JavaScript генератор кодування/декодування, представлений у даному репозиторії, є саме таким
+            (він не перевіряє типи та контанти, вказані в Erlang HRL файлах).
+            Натомість Swift версія може перевірити закодований/декодований вираз на відповідність специфікації Erlang типу.
+        </p>
+    </section>
+    <section>
+        <a name="samples"></a><h3>Приклади</h3>
+        <p>
+            По-перше, ви можете вибрати мову, не представлену у цьому репозиторії,
+            та спробувати написати реалізацію вашого власного BERT генератора кодування/декодування для цієї мови,
+            користуючись Swift (строго відповідним специфікації типів) та JavaScript (нестрогим) генераторами у якості прикладів.
+        </p>
+        <p>
+            Мета цього конкурсу — створити кодери/декодери для кожної мови
+            та зробити мости до інших описаних форматів протоколів, таких як Can’n’Proto чи protobuf!
+        </p>
+    </section>
+    <section>
+        <a name="ehrl"></a><h3>Erlang HRL</h3>
+        <figure>
+        <code>
+  -record(error, { code=[] :: [] | binary() }).
+        </code>
+        </figure>
+        <figure>
+        <code>
+  -record(ok, { code=[] :: [] | binary() }).
+        </code>
+        </figure>
+        <figure>
+        <code>
+  -record(io, { code=[] :: [] | #ok{} | #error{},
+                data=[] :: [] | &#60;&#60;&#62;&#62; 
+                  | { atom(), binary() | integer() } }).
+        </code>
+        </figure>
+    </section>
+    <section>
+        <a name="smodel"></a><h3>Swift Model</h3>
+        <figure>
+        <code>
+  class Err {
+    var code: AnyObject?
+  }
+        </code>
+        </figure>
+        <figure>
+        <code>
+  class Ok {
+    var code: AnyObject?
+  }
+        </code>
+        </figure>
+        <figure>
+        <code>
+  class Io {
+    var code: AnyObject?
+    var data: AnyObject?
+  }
+        </code>
+        </figure>
+    </section>
+
+    <section>
+        <a name="sspec"></a><h3>Swift Spec</h3>
+        <figure>
+        <code>
+  Chain(types: [
+     Model(value:Tuple(name: "io", body: [
+          Model(value:Chain(types: [
+               Model(value: Tuple(name:"ok", body: [
+                    Model(value:Atom())])),
+               Model(value: Tuple(name:"error", body: [
+                    Model(value:Atom())]))])),
+          Model(value:Tuple(name:"", body:[
+               Model(value:Atom()),
+               Model(value:Chain(types: [
+                    Model(value:Binary()),
+                    Model(value:Number())]))]))])) ])
+        </code>
+        </figure>
+    </section>
+
+    <section>
+        <a name="js"></a><h3>JavaScript</h3>
+        <figure>
+        <code>
+  function check() {
+    var res = true;
+    //@TODO: MORE TEST DATA
+    testData = [
+        1,
+        [1, 2, 3],
+        "string",
+        {tup: 'io', code: 'login', data: {tup: '$', 0: 'Auth', 1: 12}},
+        {tup: 'io', code: 'login', data: {tup: 'Auth'}},
+        {tup: 'io', code: 'login', data: {tup: '$', 0: 'doe', 1: 12}},
+        {tup: 'Roster', userlist: [{tup: 'Contact'}], status: 'get'},
+        {tup: 'p2p', from: 'john', to: 'doe'},
+        {tup: 'Profile', accounts: [1], status: 'maxim'}
+    ];
+    testData.forEach(function (o) {
+        var o = JSON.stringify(o);
+        var d = JSON.stringify(
+                decode(dec(enc(encode(o)).buffer)))
+                 .replace(/\\/g, '');
+
+        if (JSON.stringify(o) != JSON.stringify(
+             decode(dec(enc(encode(o)).buffer)))) {
+            console.log("Original: " + o + " <=> Decode: " 
+                + d + " %c [Error]", "color: red");
+            res = false;
+        } else {
+            console.log("Data: " + o + " %c [OK]", "color: green");
+        }
+    });
+
+    return res;
+  }
+        </code>
+        </figure>
+    </section>
+
+    <section>
+        <a name="samplep"></a><h3>Protobuf Sample</h3>
+        <p>Erlang BERT/HRL (source):</p>
+        <figure>
+        <code>
+-type authType()   :: google_api | facebook_api | mobile |
+                      email | voice | resend | verify | 
+                      push | logout | get | delete | clear.
+
+-type authStatus() :: invalid_version | mismatch_user_data |
+                      number_not_allowed | session_not_found |
+                      attempts_expired | invalid_sms_code |
+                      invalid_jwt_code | permission_denied |
+                      invalid_data.
+
+-record('Feature',  { id    = [] :: [] | binary(),
+                      key   = [] :: [] | binary(),
+                      value = [] :: [] | binary(),
+                      group = [] :: [] | binary()}).
+
+-record('Auth',     { client_id   = [] :: [] | binary(),
+                      dev_key     = [] :: [] | binary(),
+                      user_id     = [] :: [] | binary(),
+                      phone       = [] :: [] | binary(),
+                      token       = [] :: [] | binary(),
+                      type        = email :: authStatus(),
+                      sms_code    = [] :: [] | binary(),
+                      attempts    = [] :: [] | integer(),
+                      services    = [] :: list(atom()),
+                      settings    = [] :: list(#'Feature'{}),
+                      push        = [] :: [] | binary(),
+                      os          = [] :: [] | ios | android | web,
+                      created     = [] :: [] | integer(),
+                      last_online = [] :: [] | integer() }).
+        </code>
+        </figure>
+        <p>Proto V3 (target):</p>
+        <figure>
+        <code>
+enum osEnum {
+    ios = 0;
+    android = 1;
+    web = 2;
+}
+
+enum authStatus {
+    invalid_version = 0;
+    mismatch_user_data = 1;
+    number_not_allowed = 2;
+    session_not_found = 3;
+    attempts_expired = 4;
+    invalid_sms_code = 5;
+    invalid_jwt_code = 6;
+    permission_denied = 7;
+    invalid_data = 8;
+}
+
+message Feature {
+    string id = 1;
+    string key = 2;
+    string value = 3;
+    string group = 4;
+}
+
+message Auth {
+    string client_id = 1;
+    string dev_key = 2;
+    string user_id = 3;
+    string phone = 4;
+    string token = 5;
+    authStatus type = 6;
+    string sms_code = 7;
+    int64 attempts = 8;
+    repeated google.protobuf.Any services = 9;
+    repeated Feature settings = 10;
+    string push = 11;
+    osEnum os = 12;
+    int64 created = 13;
+    int64 last_online = 14;
+}
+        </code>
+        </figure>
+    </section>
+
+    <section>
+        <a name="run"></a><h3>Run</h3>
+        <figure>
+        <code>
+$ mad com
+==> "/Users/maxim/depot/synrc/bert"
+Generated Protobuf Model: "priv/protobuf/authType.proto"
+Generated Protobuf Model: "priv/protobuf/authStatus.proto"
+Generated Protobuf Model: "priv/protobuf/Feature.proto"
+Generated Protobuf Model: "priv/protobuf/Auth.proto"
+Generated Protobuf Model: "priv/protobuf/AuthError.proto"
+Compiling /src/bert_sample.erl
+OK
+        </code>
+        </figure>
+    </section>
+<!--
+    <section>
+        <a name="modules"></a><h3>Modules</h3>
+        <ul><li><b><a href="man/.htm"></a></b> — </li>
+            <li><b><a href="man/.htm"></a></b> — </li>
+            <li><b><a href="man/.htm"></a></b> — </li>
+            <li><b><a href="man/.htm"></a></b> — </li>
+        </ul>
+    </section>-->
+
+    <section>
+        <a name="credits"></a><h3>Credits</h3>
+        <ul><li>Yuri Maslovsky — ERLANG</li></ul>
+        <ul><li>Maxim Sokhatsky — GOOGLE, JAVASCRIPT</li></ul>
+        <ul><li>Dmytro Boiko — ERLANG, JAVASCRIPT</li></ul>
+        <ul><li>Anton Makarov — SWIFT</li></ul>
+        <ul><li>Viacheslav Katsuba — JAVASCRIPT</li></ul>
+        <p>Давайте разом створимо справжні нативні Erlang zero-overhead кодери/декодери для всіх мов!</p>
+    </section>
+</main>
+<footer>
+    Made with <span class="heart">❤</span> to Erlang
+</footer>
+</body>
+</html>
