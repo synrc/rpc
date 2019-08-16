@@ -43,7 +43,7 @@ for this language using Swift (Type Spec precise) and
 JavaScript (open relay) generator as examples.
 
 The aim of this contest is to create encoders/decoders for
-each language and make brigdes to other protocol descriptive
+each language and make bridges to other protocol descriptive
 formats like Can'n'Proto or protobuf!
 
 Erlang HRL
