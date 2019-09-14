@@ -7,14 +7,21 @@
 <meta name="description" content="" />
 <meta name="author" content="Maxim Sokhatsky" />
 <title>RPC</title>
-<link rel="stylesheet" href="https://synrc.space/synrc.css" />
+<link rel="stylesheet" href="https://n2o.dev/blank.css" />
+<link rel="stylesheet" href="https://n2o.dev/zima.css" />
 </head>
 <body>
 <nav>
-    <a href="https://n2o.dev">DEV</a>
-    <a href="#" style="background:#ededed;">RPC</a>
-    <a href="man/ua/index.html">UA</a>
-    <a href="#" style="background:#ededed;">EN</a>
+  <a href="https://n2o.dev/ua/">DEV</a>
+  <a href="https://rpc.n2o.space/" style="background:#ededed;">RPC</a>
+  <div class="dropdown">
+    <a onclick="drop()" class="dropbtn">EN</a>
+    <div id="dropdown" class="dropdown-content">
+      <a href="https://n2o.dev/deps/rpc/man/ua/index.html">UA</a>
+      <a href="https://n2o.dev/deps/rpc/man/de/index.html">DE</a>
+      <a href="https://rpc.n2o.space/">EN</a>
+    </div>
+  </div>
 </nav>
 <header>
     <a href="https://github.com/synrc/bert"><img src="https://synrc.space/images/Synrc Neo.svg?v=1" /></a>
@@ -25,30 +32,17 @@
         <section>
             <h3>SYNOPSIS</h3>
             <div>SYNRC RPC: ERLANG API SDK Generators<br /><br />
-                 <b>The main idea is to have unified code of any possible generators for all languages from HRL Type Specification.</b><br /><br />
-                 Supported Generators:<br /><br />
+                 <b>The main idea is to have unified code of any possible generators
+                    for all languages from HRL Type Specification.</b><br /><br />
+                    Supported Generators:<br /><br />
                  <ul>
                    <li>Erlang validation according to Type Spec (BERT)</li>
                    <li>JavaScript (BERT)</li>
                    <li>Swift (BERT)</li>
-                   <li>Google Protobuf Specification (PROTOBUF)</li>
+                   <li>Google Protobuf Specification (PROTOv3)</li>
                  </ul>
             </div>
         </section>
-<!--
-        <section>
-            <a name="usage"></a><h3>USAGE</h3>
-            <div>Just:</div>
-        <figure>
-        <code>
-  code
-        </code>
-        </figure>
-            <div>
-                OCT 2018 © <a href="https://github.com/5HT">5HT</a> <a href="https://5ht.co/license.htm">ISC</a><br />
-                VER 5.10
-            </div>
-        </section>-->
     </article>
 </aside>
 <main>
@@ -173,7 +167,7 @@
 
         if (JSON.stringify(o) != JSON.stringify(
              decode(dec(enc(encode(o)).buffer)))) {
-            console.log("Original: " + o + " <=> Decode: " 
+            console.log("Original: " + o + " #&60;=&&62; Decode: " 
                 + d + " %c [Error]", "color: red");
             res = false;
         } else {
@@ -287,28 +281,18 @@ OK
         </code>
         </figure>
     </section>
-<!--
-    <section>
-        <a name="modules"></a><h3>Modules</h3>
-        <ul><li><b><a href="man/.htm"></a></b> — </li>
-            <li><b><a href="man/.htm"></a></b> — </li>
-            <li><b><a href="man/.htm"></a></b> — </li>
-            <li><b><a href="man/.htm"></a></b> — </li>
-        </ul>
-    </section>-->
-
     <section>
         <a name="credits"></a><h3>Credits</h3>
-        <ul><li>Yuri Maslovsky — ERLANG</li></ul>
-        <ul><li>Maxim Sokhatsky — GOOGLE, JAVASCRIPT</li></ul>
-        <ul><li>Dmytro Boiko — ERLANG, JAVASCRIPT</li></ul>
-        <ul><li>Anton Makarov — SWIFT</li></ul>
-        <ul><li>Viacheslav Katsuba — JAVASCRIPT</li></ul>
-        <p>Let’s build true native Erlang zero-overhead encoders/decoders for all languages with you!</p>
+        <ul><li>Yuri Maslovsky — ERLANG</li>
+            <li>Maxim Sokhatsky — GOOGLE, JAVASCRIPT</li>
+            <li>Dmytro Boiko — ERLANG, JAVASCRIPT</li>
+            <li>Anton Makarov — SWIFT</li>
+            <li>Viacheslav Katsuba — JAVASCRIPT</li></ul>
     </section>
 </main>
 <footer>
     Made with <span class="heart">❤</span> to Erlang
 </footer>
 </body>
+<script>function drop(){document.getElementById("dropdown").classList.toggle("show");}</script>
 </html>
