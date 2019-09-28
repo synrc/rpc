@@ -9,8 +9,8 @@ tab(N)    -> bert:tab(N).
 undup(X)  -> sets:to_list(sets:from_list(X)).
 j(X)      -> lists:concat(X).
 j(X,Y)    -> string:join(X,Y).
-var(K)    -> application:get_env(bert,c(K),[]).
-svar(K,V) -> application:set_env(bert,c(K),V).
+var(K)    -> application:get_env(rpc,c(K),[]).
+svar(K,V) -> application:set_env(rpc,c(K),V).
 ensure()  -> Dir = filename:join([?GOOGLE,var(module)]), filelib:ensure_dir(Dir++"/java/"), Dir.
 any(M)    -> X = ["google","protobuf","Any"], svar({int,M}, [j(X,"/")] ++ var({int,M})), j(X,".").
 

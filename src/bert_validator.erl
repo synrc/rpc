@@ -23,7 +23,7 @@ u(Name) -> capitalize(to_upper, Name).
 l(Name) -> capitalize(to_lower, Name).
 
 parse_transform(Forms, _Options) ->
-  io:format("Disallowed: ~p~n",[application:get_env(bert, disallowed, ?DISDEF)]),
+  io:format("Disallowed: ~p~n",[application:get_env(rpc, disallowed, ?DISDEF)]),
   file:delete("temp.txt"),
   {Bin,Module} = directives(Forms),
   File = filename:join([?ERL, lists:concat([Module,".erl"])]),
@@ -51,7 +51,7 @@ relative_path([H|_] = Pathfile, KeyWord, Acc) when is_integer(H) ->
 
 form(Forms) -> form(Forms, #form{}).
 form([{attribute,_, record, {List, T}}|TAttrs], #form{validators = Validators} = Form) ->
-    case lists:member(List,application:get_env(bert, disallowed, ?DISDEF)) of
+    case lists:member(List,application:get_env(rpc, disallowed, ?DISDEF)) of
          true -> form(TAttrs, Form);
         false -> form(TAttrs, Form#form{validators = Validators ++validate(T, Form#form{record = lists:concat([List])})}) end;
 form([{attribute,_, module, Name}|TAttrs], #form{} = Form) ->
@@ -175,7 +175,7 @@ prelude(Imports, Module) ->
 "++S++"-compile(export_all).
 
 custom_validate(_Obj) -> [].
-validate(Obj) -> validate(Obj, [], application:get_env(bert, custom_validate, {?MODULE, custom_validate})).
+validate(Obj) -> validate(Obj, [], application:get_env(rpc, custom_validate, {?MODULE, custom_validate})).
 validate(Obj, Acc, _) when is_atom(Obj) -> Acc;
 validate(Obj, Acc, _) when is_integer(Obj) -> Acc;
 validate(Obj, Acc, _) when is_binary(Obj) -> Acc;\n"]).

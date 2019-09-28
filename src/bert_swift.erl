@@ -39,7 +39,7 @@ case_rec({Atom,T}) ->
     "        return " ++ Var ++ "\n" ]).
 
 form({attribute,_,record,{List,T}}) ->
-    case lists:member(List,application:get_env(bert, disallowed, ?DISDEF)) of
+    case lists:member(List,application:get_env(rpc, disallowed, ?DISDEF)) of
          true -> [];
          _ -> case class(List,T) of [] -> []; _ -> spec(List,T), {List,T} end end;
 form(_Form) ->  [].

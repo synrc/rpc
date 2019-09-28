@@ -4,7 +4,7 @@ defmodule RPC.Mixfile do
   def project() do
     [
       app: :rpc,
-      version: "0.9.0",
+      version: "0.9.2",
       elixir: "~> 1.7",
       description: "RPC Remote Procedure Call",
       package: package(),
@@ -14,7 +14,7 @@ defmodule RPC.Mixfile do
 
   def package do
     [
-      files: ~w(src mix.exs LICENSE),
+      files: ~w(include src mix.exs LICENSE),
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :rpc,
