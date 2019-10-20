@@ -1,7 +1,8 @@
 RPC: ERLANG API SDK Generators
 ==============================
 
-[![Build Status](https://travis-ci.org/synrc/bert.svg?branch=master)](https://travis-ci.org/synrc/rpc)
+[![Build Status](https://travis-ci.org/synrc/rpc.svg?branch=master)](https://travis-ci.org/synrc/rpc)
+[![Hex pm](http://img.shields.io/hexpm/v/rpc.svg?style=flat)](https://hex.pm/packages/rpc)
 
 The main idea is to have unified code of any possible generators for all languages
 from HRL Type Specification.
