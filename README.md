@@ -1,6 +1,7 @@
 RPC: ERLANG API SDK Generators
 ==============================
 
+[![Actions Status](https://github.com/synrc/rpc/workflows/mix/badge.svg)](https://github.com/synrc/rpc/actions)
 [![Build Status](https://travis-ci.org/synrc/rpc.svg?branch=master)](https://travis-ci.org/synrc/rpc)
 [![Hex pm](http://img.shields.io/hexpm/v/rpc.svg?style=flat)](https://hex.pm/packages/rpc)
 
