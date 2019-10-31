@@ -9,3 +9,4 @@ script:
   - "chmod +x mad"
   - "./mad dep com"
   - "rebar get-deps compile"
+  - "rebar3 dialyzer"
