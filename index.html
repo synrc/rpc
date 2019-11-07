@@ -31,10 +31,10 @@
     <article>
         <section>
             <h3>SYNOPSIS</h3>
-            <div>SYNRC RPC: ERLANG API SDK Generators<br /><br />
-                 <b>The main idea is to have unified code of any possible generators
-                    for all languages from HRL Type Specification.</b><br /><br />
-                    Supported Generators:<br /><br />
+            <div>RPC is a set of parse_transform modules that produce various encode/decode generators
+                 from Erlang HRL file type specifications. This is the most Erlang way possible.
+                 Supported Generators:<br/><br/><div>
+             <div>
                  <ul>
                    <li>Erlang validation according to Type Spec (BERT)</li>
                    <li>JavaScript (BERT)</li>
@@ -186,47 +186,47 @@
         <p>Erlang BERT/HRL (source):</p>
         <figure>
         <code>
--type authType()   :: google_api | facebook_api | mobile |
-                      email | voice | resend | verify | 
-                      push | logout | get | delete | clear.
+ -type authType()   :: google_api | facebook_api | mobile |
+                       email | voice | resend | verify | 
+                       push | logout | get | delete | clear.
 
--type authStatus() :: invalid_version | mismatch_user_data |
-                      number_not_allowed | session_not_found |
-                      attempts_expired | invalid_sms_code |
-                      invalid_jwt_code | permission_denied |
-                      invalid_data.
+ -type authStatus() :: invalid_version | mismatch_user_data |
+                       number_not_allowed | session_not_found |
+                       attempts_expired | invalid_sms_code |
+                       invalid_jwt_code | permission_denied |
+                       invalid_data.
 
--record('Feature',  { id    = [] :: [] | binary(),
-                      key   = [] :: [] | binary(),
-                      value = [] :: [] | binary(),
-                      group = [] :: [] | binary()}).
+ -record('Feature',  { id    = [] :: [] | binary(),
+                       key   = [] :: [] | binary(),
+                       value = [] :: [] | binary(),
+                       group = [] :: [] | binary()}).
 
--record('Auth',     { client_id   = [] :: [] | binary(),
-                      dev_key     = [] :: [] | binary(),
-                      user_id     = [] :: [] | binary(),
-                      phone       = [] :: [] | binary(),
-                      token       = [] :: [] | binary(),
-                      type        = email :: authStatus(),
-                      sms_code    = [] :: [] | binary(),
-                      attempts    = [] :: [] | integer(),
-                      services    = [] :: list(atom()),
-                      settings    = [] :: list(#'Feature'{}),
-                      push        = [] :: [] | binary(),
-                      os          = [] :: [] | ios | android | web,
-                      created     = [] :: [] | integer(),
-                      last_online = [] :: [] | integer() }).
+ -record('Auth',     { client_id   = [] :: [] | binary(),
+                       dev_key     = [] :: [] | binary(),
+                       user_id     = [] :: [] | binary(),
+                       phone       = [] :: [] | binary(),
+                       token       = [] :: [] | binary(),
+                       type        = email :: authStatus(),
+                       sms_code    = [] :: [] | binary(),
+                       attempts    = [] :: [] | integer(),
+                       services    = [] :: list(atom()),
+                       settings    = [] :: list(#'Feature'{}),
+                       push        = [] :: [] | binary(),
+                       os          = [] :: [] | ios | android | web,
+                       created     = [] :: [] | integer(),
+                       last_online = [] :: [] | integer() }).
         </code>
         </figure>
         <p>Proto V3 (target):</p>
         <figure>
         <code>
-enum osEnum {
+ enum osEnum {
     ios = 0;
     android = 1;
     web = 2;
-}
+ }
 
-enum authStatus {
+ enum authStatus {
     invalid_version = 0;
     mismatch_user_data = 1;
     number_not_allowed = 2;
@@ -236,16 +236,16 @@ enum authStatus {
     invalid_jwt_code = 6;
     permission_denied = 7;
     invalid_data = 8;
-}
+ }
 
-message Feature {
+ message Feature {
     string id = 1;
     string key = 2;
     string value = 3;
     string group = 4;
-}
+ }
 
-message Auth {
+ message Auth {
     string client_id = 1;
     string dev_key = 2;
     string user_id = 3;
@@ -260,7 +260,7 @@ message Auth {
     osEnum os = 12;
     int64 created = 13;
     int64 last_online = 14;
-}
+ }
         </code>
         </figure>
     </section>
@@ -269,15 +269,15 @@ message Auth {
         <a name="run"></a><h3>Run</h3>
         <figure>
         <code>
-$ mad com
-==> "/Users/maxim/depot/synrc/bert"
-Generated Protobuf Model: "priv/protobuf/authType.proto"
-Generated Protobuf Model: "priv/protobuf/authStatus.proto"
-Generated Protobuf Model: "priv/protobuf/Feature.proto"
-Generated Protobuf Model: "priv/protobuf/Auth.proto"
-Generated Protobuf Model: "priv/protobuf/AuthError.proto"
-Compiling /src/bert_sample.erl
-OK
+ $ mad com
+ ==> "/Users/maxim/depot/synrc/bert"
+ Generated Protobuf Model: "priv/protobuf/authType.proto"
+ Generated Protobuf Model: "priv/protobuf/authStatus.proto"
+ Generated Protobuf Model: "priv/protobuf/Feature.proto"
+ Generated Protobuf Model: "priv/protobuf/Auth.proto"
+ Generated Protobuf Model: "priv/protobuf/AuthError.proto"
+ Compiling /src/bert_sample.erl
+ OK
         </code>
         </figure>
     </section>
