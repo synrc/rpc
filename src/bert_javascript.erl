@@ -16,7 +16,7 @@ form(_Form) ->  [].
 
 prelude()  ->
     "function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }\n"
-    "function check_len(x)  { try { return (eval('len'+utf8_arr(x.v[0].v))() == x.v.length) ? true : false }\n"
+    "function check_len(x)  { try { return (eval('len'+utf8_arr(x.v[0].v.buffer))() == x.v.length) ? true : false }\n"
     "                         catch (e) { return false; } }\n\n"
     "function scalar(data)    {\n"
     "    var res = undefined;\n"
@@ -36,7 +36,7 @@ decode(_F) -> lists:concat(["function decode(x) {\n"
     "    } else if (x.t == 109) {\n"
     "        return utf8_arr(x.v);\n"
     "    } else if (x.t == 104 && check_len(x)) {\n"
-    "        return eval('dec'+x.v[0].v)(x);\n"
+    "        return eval('dec'+utf8_arr(x.v[0].v.buffer))(x);\n"
     "    } else if (x.t == 104) {\n"
     "        var r=[]; x.v.forEach(function(a){r.push(decode(a))});\n"
     "\treturn Object.assign({tup:'$'}, r);\n"
