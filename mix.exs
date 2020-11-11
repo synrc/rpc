@@ -4,8 +4,8 @@ defmodule RPC.Mixfile do
   def project() do
     [
       app: :rpc,
-      version: "3.8.0",
-      elixir: "~> 1.7",
+      version: "3.11.1",
+      elixir: "~> 1.9",
       description: "RPC Remote Procedure Call",
       package: package(),
       deps: deps()
