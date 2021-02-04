@@ -2,3 +2,5 @@
 *.js linguist-detectable=false
 *.java linguist-detectable=false
 *.swift linguist-detectable=false
+*.html linguist-detectable=false
+*.htm linguist-detectable=false
