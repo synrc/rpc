@@ -1,6 +1,6 @@
 {application, rpc,
    [{description, "RPC Remote Procedure Call"},
-    {vsn, "3.11.1"},
+    {vsn, "4.11.1"},
     {registered, []},
     {applications, [kernel,stdlib]},
     {mod, { bert, []}},
